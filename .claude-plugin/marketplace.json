@@ -8,12 +8,12 @@
   "plugins": [
     {
       "name": "agent-mob",
-      "description": "QRSPI project lifecycle orchestration for multi-repo teams — slash commands for creating projects, managing tasks, and driving phase transitions.",
+      "description": "QRSPI project lifecycle orchestration for multi-repo teams \u2014 slash commands for creating projects, managing tasks, and driving phase transitions.",
       "author": {
         "name": "mjohnson139"
       },
       "category": "productivity",
-      "source": ".",
+      "source": "./plugins/agent-mob",
       "homepage": "https://github.com/mjohnson139/agent-mob"
     }
   ]
