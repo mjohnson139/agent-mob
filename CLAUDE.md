@@ -1,97 +1,56 @@
-# Agent Mob
+# d3-visualization — Project Context
 
-**Read `AGENTS.md` before taking any action in this repository.**
+**Branch:** `active/d3-visualization`
+**Lead:** @mjohnson139
+**Active Task:** 
 
-Agent Mob is a git-backed collaboration system that coordinates QRSPI-structured work across multi-repo engineering teams. This `main` branch is the plugin system layer — rules, agents, and templates only. All instance data (participants, tasks, artifacts) lives on project branches.
+---
+
+## Participants
+
+mjohnson139 (scope: shared)
 
 ---
 
 ## Quick Reference
 
-### You are on `main`
-This branch is system-only. To work on a project, switch to a project branch:
-```bash
-git checkout active/{slug}
-```
+### Current Phase
+Run `/mob-status` to see the current phase and what's pending.
 
-### Start a new project
-```
-/mob-new-project "Project Name"
-```
-Creates `active/{slug}` branch with `PROJECT.yml` and project `CLAUDE.md`.
+### Your Next Action
+Run `/mob-fork` to get personalized instructions for what to do next.
 
-### Add a participant to a project
-```
-/mob-add-member {github-id}
-```
-Run from a project branch — adds the member to `PROJECT.yml.participants` for that project.
-
-### Initialize a new mob repo from scratch
-```
-/mob-init
-```
-
-### Install this plugin in another Claude Code project
-```bash
-claude plugin install git@github.com:mjohnson139/agent-mob.git
-```
-
-### Check current phase of active task
-```
-/mob-status
-```
-
-### Fork and start R-phase research
-```
-/mob-fork
-```
+### Push Your Work
+After creating your artifact, run `/mob-push` to commit and push.
 
 ---
 
-## Plugin Structure
+## Project Rules
 
-The Claude Code plugin is co-located in this repo:
+This branch follows the Agent Mob QRSPI workflow defined in `AGENTS.md`.
 
-```
-.claude-plugin/plugin.json    ← plugin manifest
-agents/
-  mob-agent.md               ← orchestrator (lifecycle commands)
-  mob-researcher.md          ← R-phase research specialist
-  mob-designer.md            ← D-phase design synthesizer
-templates/
-  AGENTS.md                  ← system rules template (for new mob repos)
-  PROJECT.yml                ← project manifest schema
-  project-CLAUDE.md          ← project branch CLAUDE.md template
-```
+- **Phase artifacts are append-only** — never delete or overwrite another participant's file
+- **R phase:** Read only `Q/questions.md` — do not read `Q/task.md` or other R files
+- **D phase:** Lead only. The designer must ask clarifying questions before writing `design.md`
+- **Commit format:** `[mob] {action}: {description}`
+- **main branch:** Never merge project work to main
+
+See `AGENTS.md` in the root of the mob repo for the full rulebook.
 
 ---
 
-## Branch Layout
+## File Structure
 
 ```
-main/              ← you are here (system only)
-active/{slug}/     ← live projects
-paused/{slug}/     ← paused projects
-archived/{slug}/   ← completed projects
+active/d3-visualization/
+├── PROJECT.yml         ← project manifest (lead, participants, active task)
+├── CLAUDE.md           ← this file
+└── tasks/
+    └── {task-id}/
+        ├── Q/task.md           ← task description (lead writes)
+        ├── Q/questions.md      ← research questions (lead writes)
+        ├── R/@{id}.md          ← one per participant (researcher writes)
+        ├── D/design.md         ← design doc (lead writes via mob-designer)
+        ├── S/@{id}.md          ← spec slice (each participant writes)
+        └── P/@{id}.md          ← plan file (each participant writes)
 ```
-
-Projects are never merged to `main`. Branch lifecycle is: `active/` → `paused/` → `archived/`.
-
----
-
-## Commit Format
-
-All commits use:
-```
-[mob] {action}: {description}
-```
-
----
-
-## QRSPI Phase Flow
-
-```
-Q (lead)  →  R (all participants, parallel)  →  D (lead)  →  S (each)  →  P (each)  →  implement
-```
-
-Phase state is derived from which files exist in the task directory — there is no separate status file. Read `AGENTS.md` for the full phase determination rules.
