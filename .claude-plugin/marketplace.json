@@ -1,0 +1,20 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "agent-mob",
+  "description": "Git-backed QRSPI collaboration system for multi-repo engineering teams with AI assistance",
+  "owner": {
+    "name": "mjohnson139"
+  },
+  "plugins": [
+    {
+      "name": "agent-mob",
+      "description": "QRSPI project lifecycle orchestration for multi-repo teams — slash commands for creating projects, managing tasks, and driving phase transitions.",
+      "author": {
+        "name": "mjohnson139"
+      },
+      "category": "productivity",
+      "source": ".",
+      "homepage": "https://github.com/mjohnson139/agent-mob"
+    }
+  ]
+}
