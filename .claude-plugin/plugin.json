@@ -2,7 +2,9 @@
   "name": "agent-mob",
   "version": "0.1.0",
   "description": "Git-backed QRSPI collaboration system for multi-repo engineering teams with AI assistance",
-  "author": "mjohnson139",
+  "author": {
+    "name": "mjohnson139"
+  },
   "repository": "https://github.com/mjohnson139/agent-mob",
   "license": "MIT"
 }
