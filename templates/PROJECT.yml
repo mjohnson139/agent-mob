@@ -1,0 +1,17 @@
+# Agent Mob — Project Manifest
+# This file is created by mob-agent on project branch creation.
+# All fields are required unless marked optional.
+
+name: ""            # Human-readable project name (e.g., "iOS Auth Redesign")
+lead: ""            # GitHub ID of the project lead (must be in team.yml)
+task: ""            # Current active task-id in format YYYYMMDD-slug (e.g., 20260523-user-auth-flow)
+
+participants:
+  # Each entry: github-id: scope
+  # scope values: shared | ios | android | rails | web | all
+  # Example:
+  # mjohnson139: shared
+  # alice-ios: ios
+  # bob-android: android
+
+# linear_issue: ""  # optional — Linear issue ID, set by /mob-linear-link (e.g., ENG-123)
