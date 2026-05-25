@@ -34,6 +34,39 @@ Adds the member to `team.yml` and commits to `main`.
 /mob-init
 ```
 
+### Install this plugin in another Claude Code project
+```bash
+claude plugin install git@github.com:mjohnson139/agent-mob.git
+```
+
+### Check current phase of active task
+```
+/mob-status
+```
+
+### Fork and start R-phase research
+```
+/mob-fork
+```
+
+---
+
+## Plugin Structure
+
+The Claude Code plugin is co-located in this repo:
+
+```
+.claude-plugin/plugin.json    ← plugin manifest
+agents/
+  mob-agent.md               ← orchestrator (lifecycle commands)
+  mob-researcher.md          ← R-phase research specialist
+  mob-designer.md            ← D-phase design synthesizer
+templates/
+  AGENTS.md                  ← system rules template (for new mob repos)
+  PROJECT.yml                ← project manifest schema
+  project-CLAUDE.md          ← project branch CLAUDE.md template
+```
+
 ---
 
 ## Current Team
