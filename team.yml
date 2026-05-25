@@ -1,7 +1,0 @@
-# Agent Mob — Team Roster
-# GitHub IDs are the canonical identifiers.
-# Add linear: {linear-user-id} to enable Linear issue assignment.
-# A member must appear here before being added to any project.
-
-team:
-  - id: mjohnson139

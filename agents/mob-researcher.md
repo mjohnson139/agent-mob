@@ -31,7 +31,7 @@ Follow these steps in order before doing any research:
    "What is your GitHub ID? (This will be used as the filename for your research artifact: `R/@{your-id}.md`)"
 
 2. **Locate the mob repo:**
-   Ask the user for the path to the mob repo (e.g., `../agent-mob` or an absolute path). Verify that `AGENTS.md` and `team.yml` exist there.
+   Ask the user for the path to the mob repo (e.g., `../agent-mob` or an absolute path). Verify that `AGENTS.md` and `.claude-plugin/plugin.json` exist there.
 
 3. **Find the current task:**
    Read `{mob-repo}/PROJECT.yml` to get the current `task:` field. This gives you the task-id and the task directory path.

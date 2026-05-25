@@ -21,7 +21,7 @@ Agent Mob is a git-backed collaboration system for small engineering teams build
 | `paused/{slug}` | Paused project | Agent (rename) | **Never** |
 | `archived/{slug}` | Completed project | Agent (rename) | **Never** |
 
-**`main` contains only:** `AGENTS.md`, `CLAUDE.md`, `team.yml`, `.gitignore`, `docs/`, `.claude-plugin/`, `agents/`, `templates/`. No project artifacts, no task directories, no QRSPI phase files ever exist on `main`.
+**`main` contains only:** `AGENTS.md`, `CLAUDE.md`, `.gitignore`, `docs/`, `.claude-plugin/`, `agents/`, `templates/`. No instance data, no project artifacts, no task directories, no QRSPI phase files ever exist on `main`.
 
 ---
 
@@ -39,9 +39,9 @@ Valid examples: `active/ios-auth-redesign`, `paused/analytics-dashboard`, `archi
 
 ## Team Roster
 
-Read `team.yml` for the current team. All participant IDs used in project artifacts must match an entry in `team.yml`. Per-member phase artifacts are named `@{id}.md`.
+Each project branch is self-contained. The `participants:` map in `PROJECT.yml` defines who is working on that project. Per-member phase artifacts are named `@{id}.md`.
 
-A member must appear in `team.yml` before they can be added to a project.
+A participant is added to a project with `/mob-add-member {id}`, which appends them to `PROJECT.yml.participants` on the project branch.
 
 ---
 
@@ -121,7 +121,7 @@ Examples:
 [mob] new-project: active/ios-auth-redesign
 [mob] artifact: R/@alice-ios.md for 20260523-user-auth-flow
 [mob] advance: phase R → D for 20260523-user-auth-flow
-[mob] add-member: bob-android added to team.yml
+[mob] add-member: bob-android added to active/ios-auth-redesign
 ```
 
 ---
@@ -148,7 +148,7 @@ Linear is a reference layer, not a mirror.
 The agent must never:
 
 1. Merge a project branch into `main`
-2. Create files on `main` outside of `AGENTS.md`, `CLAUDE.md`, `team.yml`, `.gitignore`, `docs/`, `.claude-plugin/`, `agents/`, `templates/`
+2. Create files on `main` outside of `AGENTS.md`, `CLAUDE.md`, `.gitignore`, `docs/`, `.claude-plugin/`, `agents/`, `templates/`
 3. Create a project branch with a pattern other than `{status}/{slug}`
 4. Modify `R/@{id}.md` authored by a different participant
 5. Delete phase artifacts — artifacts are append-only once committed

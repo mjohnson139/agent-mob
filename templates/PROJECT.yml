@@ -3,7 +3,7 @@
 # All fields are required unless marked optional.
 
 name: ""            # Human-readable project name (e.g., "iOS Auth Redesign")
-lead: ""            # GitHub ID of the project lead (must be in team.yml)
+lead: ""            # GitHub ID of the project lead
 task: ""            # Current active task-id in format YYYYMMDD-slug (e.g., 20260523-user-auth-flow)
 
 participants:
