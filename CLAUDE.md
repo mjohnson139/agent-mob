@@ -2,7 +2,7 @@
 
 **Read `AGENTS.md` before taking any action in this repository.**
 
-Agent Mob is a git-backed collaboration system that coordinates QRSPI-structured work across multi-repo engineering teams. This `main` branch is the system layer — team roster, rules, and documentation only.
+Agent Mob is a git-backed collaboration system that coordinates QRSPI-structured work across multi-repo engineering teams. This `main` branch is the plugin system layer — rules, agents, and templates only. All instance data (participants, tasks, artifacts) lives on project branches.
 
 ---
 
@@ -20,14 +20,11 @@ git checkout active/{slug}
 ```
 Creates `active/{slug}` branch with `PROJECT.yml` and project `CLAUDE.md`.
 
-### Check current team
-See `team.yml` in this directory.
-
-### Add a team member
+### Add a participant to a project
 ```
 /mob-add-member {github-id}
 ```
-Adds the member to `team.yml` and commits to `main`.
+Run from a project branch — adds the member to `PROJECT.yml.participants` for that project.
 
 ### Initialize a new mob repo from scratch
 ```
@@ -66,12 +63,6 @@ templates/
   PROJECT.yml                ← project manifest schema
   project-CLAUDE.md          ← project branch CLAUDE.md template
 ```
-
----
-
-## Current Team
-
-See `team.yml` — GitHub IDs are the canonical identifiers.
 
 ---
 
