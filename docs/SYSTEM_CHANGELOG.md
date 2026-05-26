@@ -4,6 +4,14 @@ Changes to system-level files (`AGENTS.md`, `CLAUDE.md`, `team.yml`) are logged 
 
 ---
 
+## 2026-05-25 (plugin/workspace separation)
+
+**Author:** mjohnson139
+**Action:** `update-system`
+Refactored plugin to separate workspace detection from plugin installation. Removed `.claude-plugin/plugin.json` from workspace checks in all three agents (`mob-agent.md`, `mob-researcher.md`, `mob-designer.md`) and the mob skill (`SKILL.md`) — workspace is now identified by `AGENTS.md` presence alone. Added `/mob init` subcommand to the skill: verifies git repo, checks for existing init, copies `${CLAUDE_PLUGIN_ROOT}/templates/AGENTS.md` into the workspace root, and commits. Added "Uninitialized workspace" soft-fail path in the skill: when `AGENTS.md` is absent, offer to run init rather than hard-failing. Removed `.claude-plugin/` from the allowed-on-main list in `plugins/agent-mob/templates/AGENTS.md` (both Branch Rules and Prohibitions sections) and from the mob skill Prohibitions. Rewrote root `AGENTS.md` as plugin development guidelines (not a mob workspace rulebook). Rewrote root `CLAUDE.md` with correct plugin structure under `plugins/agent-mob/`, correct `/mob <subcommand>` command syntax, and removed workspace-oriented sections (branch layout, QRSPI phase flow).
+
+---
+
 ## 2026-05-24 (plugin MVP)
 
 **Author:** mjohnson139
