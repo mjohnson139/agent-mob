@@ -288,8 +288,9 @@ Your questions ({role} — {n} assigned):
 How would you like to start?
   1. Brief me — I'll summarize the task and orient you before you begin
   2. Let's go — start writing your research artifact now
+  3. Guide me — we'll explore the codebase together, you direct the investigation
 
-Type 1 or 2.
+Type 1, 2, or 3.
 ```
 
 Notes:
@@ -341,6 +342,25 @@ git add tasks/{task-id}/Q/claims.yml && git commit -m "[mob] artifact: Q/claims.
 **User picks 1 (Brief me):** dispatch `mob-researcher` with a `briefing: true` flag so the researcher opens with a 2-3 sentence task summary before diving into questions.
 
 **User picks 2 (Let's go):** dispatch `mob-researcher` directly, skipping the briefing preamble.
+
+**User picks 3 (Guide me):** run guided research mode inline — do NOT dispatch `mob-researcher`.
+
+1. Claims are already written before this point (no change needed).
+2. Open the session by confirming claimed questions and asking where to start:
+   > "I've claimed {comma-separated claimed question IDs} for you. Where do you want to start — want me to begin with {first claimed question ID}, or is there a specific part of the codebase you'd like to look at first?"
+3. Enter conversational research loop. Rules throughout:
+   - Objective findings only — report what exists, not what should exist
+   - Every finding requires a `file:line` reference — no unsourced claims
+   - Forbidden phrasing: "should", "could", "I recommend", "would be better", "this could be improved"
+   - Do NOT read `Q/task.md` or any other participant's `R/@*.md` file
+   - Use Bash/Read/Glob to explore the codebase as directed by the human
+   - Do NOT auto-advance to the next question — surface findings and wait for the human's direction
+   - Follow-up questions to the human about their codebase structure are allowed
+   - Approved phrasing: "X is implemented at `path/to/file.ts:42` as Y" / "No implementation of X was found in the scanned directories"
+4. Human directs the session — they may name a question to tackle, point to a file/module, ask for a specific search, or redirect mid-investigation.
+5. Session ends when the human says they are done or all claimed questions are covered.
+6. Write `R/@{github-id}.md` using the standard format. Include a section only for each answered question — no empty sections for unclaimed or skipped questions.
+7. Print the artifact path and say: "Your research artifact is ready. Run /mob contribute to commit and push it."
 
 **Returning output:**
 ```
