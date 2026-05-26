@@ -187,31 +187,63 @@ Execute inline. Steps:
 
 ## `/mob join`
 
-Determine the user's next action inline, then dispatch to a specialist agent if needed.
+Join a project branch. Works from any branch — no need to know the branch name.
 
-**Inline determination steps:**
+**Discovery mode (`/mob join`, no args):**
 
-1. **Read `PROJECT.yml`** (current task, participants list).
-
-2. **Get the calling user's GitHub ID:**
+1. **Fetch remotes:**
    ```bash
-   git config user.name
+   git fetch --all
    ```
-   Ask the user if result is unclear.
 
-3. **Apply phase state machine** (same rules as status) to determine what this user should do next.
+2. **List active branches** (local and remote):
+   ```bash
+   git branch -a | grep "active/"
+   ```
+   For each match, read `PROJECT.yml` on that branch for the project name, and get the last commit date:
+   ```bash
+   git log -1 --format="%ci" {branch}
+   ```
 
-4. **Output exactly:**
-   - Step 1: `git pull` command (with remote and branch)
-   - Step 2: Which file to create (with exact path)
-   - Step 3: Which agent to invoke (`mob-researcher` or `mob-designer`)
-   - Step 4: What inputs that agent will need
+3. **Sort by most recent commit date** and display:
+   ```
+   Active projects:
 
-**If the user needs to do R-phase work:** dispatch to `mob-researcher` via the Agent tool, passing the task path and questions file location.
+     1. Red Study          active/red-study          2026-05-26
+     2. iOS Auth Redesign  active/ios-auth-redesign   2026-05-24
 
-**If the user needs to do D-phase work:** dispatch to `mob-designer` via the Agent tool, passing all R artifacts as input.
+   Type a number to join, or /mob join {project-name} to go directly.
+   ```
 
-**If the user is in Q, S, or P phase:** no agent dispatch needed — output the steps above and let the user proceed.
+4. Wait for user selection (a number), then proceed to **Checkout** below.
+
+If no active projects exist, say: "No active projects found. Run /mob new-project \"Name\" to create one."
+
+**Direct mode (`/mob join {name}`):**
+
+1. **Derive slug** from name using the same slug rules as /mob new-project.
+2. **Verify** that `active/{slug}` exists (local or remote):
+   ```bash
+   git branch -a | grep "active/{slug}"
+   ```
+   If not found, stop: "No active project matching '{name}'. Run /mob join to see available projects."
+3. Proceed to **Checkout** below.
+
+**Checkout (both modes):**
+
+1. Check whether `active/{slug}` exists locally:
+   ```bash
+   git branch --list active/{slug}
+   ```
+   - If local branch exists: `git checkout active/{slug}`
+   - If local branch absent: `git checkout -b active/{slug} origin/active/{slug}`
+
+2. Pull latest:
+   ```bash
+   git pull origin active/{slug}
+   ```
+
+3. Proceed to first-time/returning detection and orientation (see U3 orientation section).
 
 ---
 

@@ -4,6 +4,14 @@ Changes to system-level files (`AGENTS.md`, `CLAUDE.md`, `team.yml`) are logged 
 
 ---
 
+## 2026-05-26 (U2: join flow — branch-agnostic entry, discovery, and direct modes)
+
+**Author:** mjohnson139
+**Action:** `update-system`
+Rewrote `/mob join` in SKILL.md to support branch-agnostic entry. Discovery mode (`/mob join`, no args): runs `git fetch --all`, lists all `active/*` branches (local and remote), reads PROJECT.yml on each branch for project name and last commit date, displays a numbered list sorted by most recent commit, and waits for user selection. Direct mode (`/mob join {name}`): derives slug, verifies `active/{slug}` exists locally or remotely, stops with a clear message if not found. Checkout path (both modes): handles local-branch-present vs. remote-only cases, then pulls latest. Participants no longer need to know branch names.
+
+---
+
 ## 2026-05-26 (U1: command renames and backtick fix)
 
 **Author:** mjohnson139
