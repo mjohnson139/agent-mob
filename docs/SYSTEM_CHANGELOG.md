@@ -4,6 +4,14 @@ Changes to system-level files (`AGENTS.md`, `CLAUDE.md`, `team.yml`) are logged 
 
 ---
 
+## 2026-05-26 (U6: mob-researcher — role context injection and contribute references)
+
+**Author:** mjohnson139
+**Action:** `update-system`
+Updated mob-researcher.md startup sequence to support injected role context. When dispatched with `role` and `claimed_questions`, the researcher confirms the role and claimed question IDs at startup and skips the GitHub ID + workspace path prompts. When dispatched without role context (legacy path), the existing startup sequence is preserved unchanged. Added `briefing: true` dispatch flag: when present, researcher provides a 2-3 sentence task summary (from questions context, not Q/task.md) before beginning research. Research process updated: with role context, only claimed questions are answered and no empty sections are written for unclaimed questions; without role context, all questions are answered. The confirmation message in step 5 now names the assigned questions (or "all questions" for the legacy path).
+
+---
+
 ## 2026-05-26 (U5: question tagging, role-filtered view, and claim state)
 
 **Author:** mjohnson139
