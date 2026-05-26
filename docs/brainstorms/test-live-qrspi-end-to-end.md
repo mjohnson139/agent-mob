@@ -1,6 +1,6 @@
 ---
 title: "test: Live QRSPI End-to-End Smoke Test"
-date: 2026-05-25
+date: 2026-05-26
 status: active
 type: requirements
 ---
@@ -66,29 +66,29 @@ participants:
 
 1. Create `mjohnson139/mob-test-workspace` on GitHub via `gh repo create`
 2. Clone locally, run `/mob init` to install `AGENTS.md`
-3. Run `/mob new-project "Red Study"` → creates `active/red-study` branch
-4. Add all three participants to `PROJECT.yml`
-5. Run `/mob new-task "describe the color red from three angles"` → creates task scaffold
-6. Write `Q/task.md` and `Q/questions.md` (three mechanical questions)
+3. Run `/mob new-project "Red Study"` → when prompted for specialist roles, press Enter to skip → creates `active/red-study` branch
+4. Add all three participants to `PROJECT.yml` via `/mob add-member`
+5. Run `/mob new-task "describe the color red from three angles"` → creates `tasks/{task-id}/` scaffold
+6. Write `tasks/{task-id}/Q/task.md` and `tasks/{task-id}/Q/questions.md` (three mechanical questions, no role tags — open to all)
 7. Commit and push `active/red-study`
 8. Set branch protection on `main` via `gh api`
 9. Print onboarding notification to chat (see below)
-10. Spawn `agent-alice` and `agent-bob` as parallel subagents → each writes and pushes `R/@{id}.md`
+10. Spawn `agent-alice` and `agent-bob` as parallel subagents → each joins via direct mode (`/mob join "Red Study"`), selects "Let's go" at the orientation menu, and mob-researcher writes and pushes `tasks/{task-id}/R/@{id}.md`
 
 ### Human participant actions (Codespace)
 
-1. Clone `mob-test-workspace`
-2. `git pull` to see current state (subagent R artifacts may already be present)
-3. Checkout `active/red-study`
-4. Run `/mob fork` → get personal next-step instructions
-5. Write `R/@mjohnson139.md`
-6. Run `/mob push`
+1. Install mob plugin: `claude plugin install git@github.com:mjohnson139/agent-mob.git`
+2. Clone `mob-test-workspace`
+3. Run `/mob join` → select "Red Study" from the discovery list → checkout `active/red-study`
+4. At the orientation menu, pick any option (1 = Brief me, 2 = Let's go, 3 = Guide me)
+5. Write `tasks/{task-id}/R/@mjohnson139.md`
+6. Stage the file and run `/mob contribute`
 7. Say **"pumpkin"** in the Codespace Claude session
 
 ### Lead response to "pumpkin"
 
 1. Pull latest from `active/red-study`
-2. Check that `R/@agent-alice.md`, `R/@agent-bob.md`, and `R/@mjohnson139.md` all exist
+2. Check that all three R artifacts exist under `tasks/{task-id}/R/`
 3. Announce: "All three R artifacts present. Ready to begin D-phase on your signal."
 4. Wait — D-phase does not auto-trigger
 
@@ -101,9 +101,9 @@ The lead generates this text after step 9 above. Format: copy-paste ready block.
 **Required content:**
 - Repo URL: `https://github.com/mjohnson139/mob-test-workspace`
 - Clone command
-- Branch to check out: `active/red-study`
-- How to add yourself as a member (pre-done by lead — just pull and check `PROJECT.yml`)
-- Command to get personal instructions: `/mob fork`
+- Plugin install command: `claude plugin install git@github.com:mjohnson139/agent-mob.git`
+- Command to join: `/mob join` (discovery mode — select "Red Study" from the list)
+- How to confirm registration: check `PROJECT.yml` on `active/red-study` — your name is already there
 - Completion signal: say "pumpkin" when R artifact is pushed
 
 ---
@@ -115,12 +115,15 @@ The test passes when ALL of the following are true:
 | Check | Expected state |
 |---|---|
 | `active/red-study` branch exists | ✓ |
-| `Q/questions.md` present | ✓ |
-| `R/@agent-alice.md` present | ✓ |
-| `R/@agent-bob.md` present | ✓ |
-| `R/@mjohnson139.md` present | ✓ |
+| `tasks/{task-id}/Q/questions.md` present | ✓ |
+| `tasks/{task-id}/R/@agent-alice.md` present | ✓ |
+| `tasks/{task-id}/R/@agent-bob.md` present | ✓ |
+| `tasks/{task-id}/R/@mjohnson139.md` present | ✓ |
+| `tasks/{task-id}/Q/claims.yml` present (human claimed ≥1 question) | ✓ |
 | `main` branch has no project commits | ✓ |
 | Lead announces D-phase readiness | ✓ |
+
+Note: `{task-id}` = `20260526-describe-the-color-red-from-three-dis` (or truncated form derived by `/mob new-task`). Check via `ls tasks/`.
 
 ---
 
@@ -139,6 +142,8 @@ The test passes when ALL of the following are true:
 |---|---|
 | `gh` CLI permissions | Creating a repo and setting branch protection requires the orchestrating session to be authenticated as `mjohnson139`. Verify `gh auth status` before starting. |
 | Subagent push access | Subagents push via the same git credentials as the parent session. No separate auth needed. |
-| Codespace plugin install | User installs the mob plugin in the Codespace before the test: `claude plugin install git@github.com:mjohnson139/agent-mob.git` |
-| Subagent timing | Subagents may finish before or after the user clones. `git pull` before `/mob fork` is required and included in the onboarding notification. |
+| Codespace plugin install | User installs the mob plugin in the Codespace before joining: `claude plugin install git@github.com:mjohnson139/agent-mob.git` |
+| Subagent join mode | Subagents use direct mode (`/mob join "Red Study"`) to bypass the discovery list, then select option 2 ("Let's go") at the orientation menu to skip briefing and go straight to mob-researcher. |
+| Subagent timing | Subagents may finish before or after the user clones. `/mob join` pulls latest automatically — no manual `git pull` needed before joining. |
 | "Pumpkin" detection | The Codespace Claude session does not have a direct signal channel to this session. The human communicates "pumpkin" in their session; the lead polls by pulling and checking file state. |
+| claims.yml on subagent join | When subagents claim questions via `/mob join`, `Q/claims.yml` is written and committed. The human participant will see claimed questions marked as taken in their orientation view. |
