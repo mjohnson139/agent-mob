@@ -3,14 +3,7 @@
 Thumbs.db
 
 # Claude Code local state — never commit
-.claude/daemon*
-.claude/session-env/
-.claude/file-history/
-.claude/paste-cache/
-.claude/backups/
-.claude/settings.json
-.claude/__store.db
-.claude/sessions/
+.claude/
 
 # Claude session files — share docs, not sessions
 **/*.jsonl
