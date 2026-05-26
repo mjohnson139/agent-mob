@@ -4,6 +4,14 @@ Changes to system-level files (`AGENTS.md`, `CLAUDE.md`, `team.yml`) are logged 
 
 ---
 
+## 2026-05-26 (U3: first-time vs. returning detection and adaptive orientation)
+
+**Author:** mjohnson139
+**Action:** `update-system`
+Added first-time/returning participant detection to the /mob join flow in SKILL.md. After checkout, the skill gets the calling user's GitHub ID, checks for any existing artifact (`find tasks/ -name "@{id}.md"`) to determine first-time vs. returning status, and applies the phase state machine to determine current phase. First-time participants see a guided orientation: project name, current phase, task description, per-participant completion list (✓/○), their assigned questions, and a choice between "Brief me" (dispatches mob-researcher with briefing flag) or "Let's go" (dispatches mob-researcher directly). Returning participants see a terse summary: project + phase header, open question IDs, and /mob contribute reminder. If the returning participant's artifact already exists, they see a completion message instead.
+
+---
+
 ## 2026-05-26 (U2: join flow — branch-agnostic entry, discovery, and direct modes)
 
 **Author:** mjohnson139

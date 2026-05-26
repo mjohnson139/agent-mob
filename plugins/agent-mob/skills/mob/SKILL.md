@@ -243,7 +243,71 @@ If no active projects exist, say: "No active projects found. Run /mob new-projec
    git pull origin active/{slug}
    ```
 
-3. Proceed to first-time/returning detection and orientation (see U3 orientation section).
+3. Proceed to first-time/returning detection and orientation below.
+
+**Orientation — first-time vs. returning detection:**
+
+1. **Get the calling user's GitHub ID:**
+   ```bash
+   git config user.name
+   ```
+   Ask the user if result is unclear.
+
+2. **Detect prior participation:** check whether any artifact file exists for this user on the current branch:
+   ```bash
+   find tasks/ -name "@{id}.md" 2>/dev/null | head -1
+   ```
+   - If no match → **first-time participant**
+   - If any match → **returning participant**
+
+3. **Determine current phase** by applying the phase state machine (same rules as /mob status) to identify whether the project is in Q, R, D, S, or P phase.
+
+**First-time output:**
+```
+Welcome to {project name}, @{github-id}.
+
+Phase: {phase letter} — {phase name}
+Task: {task description from Q/task.md}
+
+What's been done:
+  ✓ @alice   — research complete
+  ✓ @bob     — research complete
+  ○ @you     — not started
+
+Your questions ({role} — {n} assigned):
+  Q1: {question text}
+  Q3: {question text}
+
+How would you like to start?
+  1. Brief me — I'll summarize the task and orient you before you begin
+  2. Let's go — start writing your research artifact now
+
+Type 1 or 2.
+```
+
+Notes:
+- The participant completion list is derived from `tasks/{task-id}/{phase}/@*.md` files — show ✓ for present, ○ for absent.
+- "Your questions" shows questions assigned to the participant's role (see U5 role-filtered view). If no roles are defined, show all unclaimed questions.
+- If no questions file exists yet, omit the questions block.
+
+**User picks 1 (Brief me):** dispatch `mob-researcher` with a `briefing: true` flag so the researcher opens with a 2-3 sentence task summary before diving into questions.
+
+**User picks 2 (Let's go):** dispatch `mob-researcher` directly, skipping the briefing preamble.
+
+**Returning output:**
+```
+{project name}  •  Phase {letter}  •  active/{slug}
+
+Your open questions: {comma-separated unclaimed question IDs}
+Next: /mob contribute when your artifact is ready
+```
+
+If all the participant's questions are answered (artifact exists for this user), say:
+```
+{project name}  •  Phase {letter}  •  active/{slug}
+
+Your artifact is already submitted. Run /mob status to see overall progress.
+```
 
 ---
 
