@@ -21,7 +21,7 @@ Agent Mob is a git-backed collaboration system for small engineering teams build
 | `paused/{slug}` | Paused project | Agent (rename) | **Never** |
 | `archived/{slug}` | Completed project | Agent (rename) | **Never** |
 
-**`main` contains only:** `AGENTS.md`, `CLAUDE.md`, `.gitignore`, `docs/`, `.claude-plugin/`, `agents/`, `templates/`. No instance data, no project artifacts, no task directories, no QRSPI phase files ever exist on `main`.
+**`main` contains only:** `AGENTS.md`, `CLAUDE.md`, `.gitignore`, `docs/`, `agents/`, `templates/`. No instance data, no project artifacts, no task directories, no QRSPI phase files ever exist on `main`.
 
 ---
 
@@ -148,7 +148,7 @@ Linear is a reference layer, not a mirror.
 The agent must never:
 
 1. Merge a project branch into `main`
-2. Create files on `main` outside of `AGENTS.md`, `CLAUDE.md`, `.gitignore`, `docs/`, `.claude-plugin/`, `agents/`, `templates/`
+2. Create files on `main` outside of `AGENTS.md`, `CLAUDE.md`, `.gitignore`, `docs/`, `agents/`, `templates/`
 3. Create a project branch with a pattern other than `{status}/{slug}`
 4. Modify `R/@{id}.md` authored by a different participant
 5. Delete phase artifacts — artifacts are append-only once committed
