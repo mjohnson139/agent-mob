@@ -4,6 +4,14 @@ Changes to system-level files (`AGENTS.md`, `CLAUDE.md`, `team.yml`) are logged 
 
 ---
 
+## 2026-05-26 (U8: README and plugin.json path drift fix)
+
+**Author:** mjohnson139
+**Action:** `update-system`
+Added README.md at the repo root — dual-audience (GitHub cold-reader and maintainer reference). Covers what Agent Mob is, QRSPI phases, installation, quick-start commands, how the workspace model works, plugin structure, and development conventions. Corrected stale `plugin.json` path in three places: CLAUDE.md plugin structure diagram, AGENTS.md repo structure diagram, and AGENTS.md What-NOT-to-Do list — all now reference the correct `plugins/agent-mob/.claude-plugin/plugin.json` location. Bumped plugin version 0.1.1 → 0.1.2.
+
+---
+
 ## 2026-05-26 (U7: guided research mode — option 3 in /mob join orientation)
 
 **Author:** mjohnson139
