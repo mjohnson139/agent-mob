@@ -7,15 +7,34 @@ description: Use when the user invokes /mob or any mob subcommand (new-project, 
 
 Execute all mob commands **inline** using direct Bash/Read/Write tool calls. Do NOT dispatch to mob-agent via the Agent tool (except as noted under `/mob fork`).
 
-## Repo verification
+## Workspace verification
 
-Before taking any action, verify this is a mob repo:
+Before taking any action (except `/mob init`), verify this is a mob workspace:
 
 ```bash
-ls AGENTS.md .claude-plugin/plugin.json
+ls AGENTS.md
 ```
 
-If either file is missing, stop and say: "This does not appear to be a mob repo. AGENTS.md and .claude-plugin/plugin.json must be present."
+If `AGENTS.md` is missing, do not hard-fail — see "Uninitialized workspace" below.
+
+---
+
+## Uninitialized workspace
+
+If `AGENTS.md` is not present in the current directory, say:
+
+```
+This doesn't look like a mob workspace yet — no AGENTS.md found.
+
+Would you like to initialize this repo as a mob workspace?
+This will copy the mob rulebook (AGENTS.md) into the current directory and commit it.
+
+Reply "yes" to initialize now.
+```
+
+If the user replies "yes":
+1. Run the `/mob init` steps (see below).
+2. If a command other than `/mob init` was originally invoked, continue with that command after init completes.
 
 ---
 
@@ -258,12 +277,42 @@ Execute inline. Steps:
 
 ---
 
+## `/mob init`
+
+Initialize the current directory as a mob workspace. Steps:
+
+1. **Verify git repo:**
+   ```bash
+   git rev-parse --git-dir
+   ```
+   If this fails, stop: "This is not a git repo. Initialize one with `git init` first."
+
+2. **Check not already initialized:**
+   ```bash
+   ls AGENTS.md
+   ```
+   If `AGENTS.md` exists, stop: "This repo is already initialized as a mob workspace."
+
+3. **Copy template:**
+   ```bash
+   cp "${CLAUDE_PLUGIN_ROOT}/templates/AGENTS.md" AGENTS.md
+   ```
+
+4. **Commit:**
+   ```bash
+   git add AGENTS.md && git commit -m "[mob] init: initialize mob workspace"
+   ```
+
+5. **Output:** "Mob workspace initialized. Run `/mob new-project \"Name\"` to create your first project."
+
+---
+
 ## Prohibitions
 
 These rules apply regardless of what the user asks:
 
 1. Never merge a project branch into `main`
-2. Never create files on `main` outside of: `AGENTS.md`, `CLAUDE.md`, `.gitignore`, `docs/`, `.claude-plugin/`, `agents/`, `templates/`
+2. Never create files on `main` outside of: `AGENTS.md`, `CLAUDE.md`, `.gitignore`, `docs/`, `agents/`, `templates/`
 3. Never create a project branch with a pattern other than `{status}/{slug}` (valid statuses: `active`, `paused`, `archived`)
 4. Never modify `R/@{id}.md` authored by a different participant — each researcher owns their own file
 5. Never delete phase artifacts — artifacts are append-only once committed

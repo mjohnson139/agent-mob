@@ -1,114 +1,77 @@
-# Agent Mob — Agent Operational Rules
+# Agent Mob — Plugin Development Guidelines
 
-This is the authoritative rulebook for any AI agent operating in this repository. Read this file before taking any action. Follow these rules strictly. Do not infer behavior not defined here.
+This is the `claude-mob` plugin repository. It is **not** a mob workspace. The mob workspace rulebook lives at `plugins/agent-mob/templates/AGENTS.md` — that file is installed into teams' repos by `/mob init`.
 
----
-
-## System Identity
-
-Agent Mob is a git-backed collaboration system for small engineering teams building multi-repo products with AI assistance. This repository is the coordination layer. QRSPI phase artifacts (markdown files) are the unit of shared context. The file tree is the state machine — phase and contributor progress are derived from which files exist.
-
-**This is a `main` branch session.** The `main` branch contains only system files. All project work lives on project branches (`active/{slug}`, `paused/{slug}`, `archived/{slug}`).
+Read this file before making any changes to the plugin source. Follow these guidelines strictly.
 
 ---
 
-## Branch Rules
+## Purpose of This Repo
 
-| Branch | Purpose | Created by | Merges to `main`? |
-|---|---|---|---|
-| `main` | System only | Initial setup | N/A |
-| `active/{slug}` | Live project | Agent (`mob-agent`) | **Never** |
-| `paused/{slug}` | Paused project | Agent (rename) | **Never** |
-| `archived/{slug}` | Completed project | Agent (rename) | **Never** |
-
-**`main` contains only:** `AGENTS.md`, `CLAUDE.md`, `.gitignore`, `docs/`, `.claude-plugin/`, `agents/`, `templates/`. No instance data, no project artifacts, no task directories, no QRSPI phase files ever exist on `main`.
+This repo contains the installable Claude Code plugin for Agent Mob. It is a plugin source repo, not a place to run QRSPI projects. There are no `active/`, `paused/`, or `archived/` branches here, and no `PROJECT.yml` or task artifacts should ever be created here.
 
 ---
 
-## Branch Naming
+## Repo Structure
 
-The agent derives slugs from human-provided project names. Rules:
-- Lowercase only
-- Hyphens as separators — no underscores, spaces, or special characters
-- Maximum 40 characters (truncate preserving meaning)
-- Must be unique across all statuses — a slug used in `archived/` cannot be reused in `active/`
-
-Valid examples: `active/ios-auth-redesign`, `paused/analytics-dashboard`, `archived/legacy-payment-flow`
-
----
-
-## Team / Participants
-
-Each project branch is self-contained. The `participants:` map in `PROJECT.yml` defines who is working on that project — there is no global team roster. Per-member phase artifacts are named `@{id}.md`.
-
-A participant is added to a project with `/mob-add-member {id}`, which appends them to `PROJECT.yml.participants` on the project branch.
-
----
-
-## Phase State (File Tree as State Machine)
-
-Phase is derived from what files exist in a task directory. Apply these rules in order:
-
-| Condition | State |
-|---|---|
-| `Q/questions.md` absent | Phase Q in progress |
-| `Q/questions.md` present; any participant's `R/@{id}.md` absent | Phase R in progress |
-| All `R/@{id}.md` present for all participants | R complete → D |
-| `D/design.md` present | D complete → S |
-| All `S/@{id}.md` present for all participants | S complete → P |
-| All `P/@{id}.md` present for all participants | P complete → implementation |
-
-"All participants" = the keys listed under `participants` in `PROJECT.yml`.
-
----
-
-## Artifact Rules
-
-### Project branch structure
 ```
-active/{slug}/
-├── PROJECT.yml
-├── CLAUDE.md
-└── tasks/
-    └── {task-id}/
-        ├── Q/task.md
-        ├── Q/questions.md
-        ├── R/@{id}.md       ← one per participant
-        ├── D/design.md
-        ├── S/@{id}.md       ← one per participant
-        └── P/@{id}.md       ← one per participant
+plugins/
+  agent-mob/
+    agents/
+      mob-agent.md          ← orchestrator (lifecycle commands)
+      mob-researcher.md     ← R-phase research specialist
+      mob-designer.md       ← D-phase design synthesizer
+    skills/
+      mob/
+        SKILL.md            ← inline fast-path skill
+    templates/
+      AGENTS.md             ← workspace rulebook (installed by /mob init)
+      PROJECT.yml           ← project manifest schema
+      project-CLAUDE.md     ← project branch CLAUDE.md template
+    plugin.json             ← plugin manifest
+docs/
+  brainstorms/              ← design explorations and requirements docs
+  plans/                    ← implementation plans
+  SYSTEM_CHANGELOG.md       ← log of plugin-level changes
+AGENTS.md                   ← this file (plugin dev guidelines)
+CLAUDE.md                   ← quick reference for contributors
 ```
 
-### Task ID format
-```
-{YYYYMMDD}-{description-slug}
-Example: 20260523-user-auth-flow
-```
+---
 
-### PROJECT.yml schema
-```yaml
-name: Human-readable project name
-lead: github-id
-task: 20260523-current-active-task
-participants:
-  github-id: shared     # scope: shared | ios | android | rails | all
-  github-id: ios
-linear_issue: ENG-123   # optional
-```
+## Modifying Agents
 
-### Phase rules
-- **Q:** Lead only. `task.md` = original description. `questions.md` = targeted codebase questions.
-- **R:** One file per participant (`@{id}.md`). Objective findings with `file:line` refs. No design opinions. Participant must not read `Q/task.md` — only `Q/questions.md`.
-- **D:** Lead only. `design.md` ~200 lines: current state, desired outcome, decisions. Agent must ask lead clarifying questions before writing — never invent decisions.
-- **S:** One file per participant. Vertical slices, function signatures, verification checkpoints.
-- **P:** One file per participant. Tactical steps with checkboxes.
-- **W/I/PR:** Executed in participant's application repo. PR URLs posted as comments on the Linear issue.
+Agent files are in `plugins/agent-mob/agents/`. Each agent has a YAML frontmatter block and a markdown body.
+
+- **frontmatter `description`** — the phrase-match trigger used to dispatch this agent. Keep it accurate.
+- **Identity section** — defines the agent's role and the startup verification check. Workspace detection uses `AGENTS.md` presence only — do not add `.claude-plugin/plugin.json` or any other file to this check.
+- **Prohibitions** — rules the agent enforces. The allowed-on-main list must not include `.claude-plugin/` — that path is not part of a mob workspace.
 
 ---
 
-## Commit Format
+## Modifying the Skill
 
-Every commit in this repository uses this format:
+The inline fast-path skill is at `plugins/agent-mob/skills/mob/SKILL.md`.
+
+- Workspace verification uses `AGENTS.md` only — no `plugin.json` check.
+- `/mob init` is the bootstrap subcommand. It copies `${CLAUDE_PLUGIN_ROOT}/templates/AGENTS.md` into the target repo. Keep this path — `CLAUDE_PLUGIN_ROOT` resolves to the plugin root at runtime.
+- The "Uninitialized workspace" section defines the soft-fail path when `AGENTS.md` is absent. Do not change this to a hard-fail.
+
+---
+
+## Modifying Templates
+
+Templates are in `plugins/agent-mob/templates/`. These files are copied into users' mob workspaces.
+
+- `AGENTS.md` — the workspace rulebook. This is what teams read. Keep it accurate and self-contained. The allowed-on-main list here must not include `.claude-plugin/`.
+- `PROJECT.yml` — schema only; no real data.
+- `project-CLAUDE.md` — template with `{{substitution}}` placeholders.
+
+---
+
+## Commit Conventions
+
+All commits in this repo use:
 
 ```
 [mob] {action}: {description}
@@ -116,49 +79,16 @@ Every commit in this repository uses this format:
 
 Valid action values: `init`, `new-project`, `new-task`, `artifact`, `advance`, `push`, `pause`, `archive`, `add-member`, `link-linear`, `update-system`
 
-Examples:
-```
-[mob] new-project: active/ios-auth-redesign
-[mob] artifact: R/@alice-ios.md for 20260523-user-auth-flow
-[mob] advance: phase R → D for 20260523-user-auth-flow
-[mob] add-member: bob-android added to active/ios-auth-redesign
-```
+Use `update-system` for changes to plugin source files (agents, skills, templates, manifest).
+
+Every `update-system` commit must have a corresponding entry in `docs/SYSTEM_CHANGELOG.md`.
 
 ---
 
-## Fast-Track Rule
+## What NOT to Do Here
 
-The lead may start the next task (update `PROJECT.yml.task`) before all participants have merged their PRs from the current task. The agent warns if prior task has unmerged PRs but does not block. The prior task directory remains intact.
-
----
-
-## Linear Integration
-
-Linear is a reference layer, not a mirror.
-- One Linear issue per mob task (all repos, all participants)
-- Issue created on explicit request only (`/mob-linear-link`)
-- PR URLs are posted as comments on the single shared issue
-- Issue marked Done on `/mob-archive`
-- No automatic phase-label syncing
-
----
-
-## Prohibitions
-
-The agent must never:
-
-1. Merge a project branch into `main`
-2. Create files on `main` outside of `AGENTS.md`, `CLAUDE.md`, `.gitignore`, `docs/`, `.claude-plugin/`, `agents/`, `templates/`
-3. Create a project branch with a pattern other than `{status}/{slug}`
-4. Modify `R/@{id}.md` authored by a different participant
-5. Delete phase artifacts — artifacts are append-only once committed
-6. Advance phase in `PROJECT.yml` unless file-tree conditions are met
-7. Invent a capability not defined in this document
-
-If asked to do something undefined, respond: *"That operation is not defined in AGENTS.md. Update the system rules on `main` first."*
-
----
-
-## How to Update This File
-
-Changes to `AGENTS.md` are committed to `main` only. Every change must include an entry in `docs/SYSTEM_CHANGELOG.md` with date, author, and description of the change. The agent must not modify `AGENTS.md` without explicit human instruction.
+- Do not create `active/`, `paused/`, or `archived/` branches — this is not a mob workspace
+- Do not create `PROJECT.yml` or task artifacts on any branch
+- Do not run `/mob new-project` or `/mob new-task` in this repo
+- Do not modify `plugins/agent-mob/plugin.json` without updating the manifest version
+- Do not add `.claude-plugin/plugin.json` back to workspace detection checks — that was a previous design that mixed plugin and workspace concerns
