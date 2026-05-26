@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<!-- saved from url=(0111)file:///Users/matthewjohnson/dev/claude-mob/.claude/worktrees/qrspi-d3-viz/docs/brainstorms/qrspi-terminal.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent Mob · QRSPI Terminal</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+    :root {
+      --green:    #00ff41;
+      --amber:    #ffb300;
+      --cyan:     #00e5ff;
+      --magenta:  #ff4dff;
+      --red:      #ff3333;
+      --orange:   #ff8800;
+      --lime:     #aaff00;
+      --dim:      #1a3320;
+      --dimmer:   #0d1f12;
+      --bg:       #030a05;
+      --border:   #1a4a1a;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--green);
+      font-family: 'Share Tech Mono', 'Courier New', monospace;
+      font-size: 13px;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* CRT overlay effects */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent 0px, transparent 3px,
+        rgba(0,0,0,0.12) 3px, rgba(0,0,0,0.12) 4px
+      );
+      pointer-events: none; z-index: 9000;
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse at center,
+        transparent 60%, rgba(0,0,0,0.55) 100%);
+      pointer-events: none; z-index: 9001;
+    }
+
+    .glow  { text-shadow: 0 0 6px currentColor; }
+    .glow2 { text-shadow: 0 0 10px currentColor, 0 0 20px currentColor; }
+
+    /* ── LAYOUT ──────────────────────────────────────────────── */
+    #app {
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      height: 100vh;
+      padding: 10px 12px;
+      gap: 8px;
+    }
+
+    /* ── HEADER ──────────────────────────────────────────────── */
+    #header {
+      display: flex; align-items: center; justify-content: space-between;
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      background: var(--dimmer);
+      color: var(--green);
+    }
+    #header .title { font-size: 15px; letter-spacing: 2px; }
+    #header .title span { color: var(--amber); }
+    #header .status-row { display: flex; gap: 20px; font-size: 11px; color: #4a8a4a; }
+    #header .live { color: var(--red); animation: blink 1.2s step-end infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* ── PHASE CHAIN ─────────────────────────────────────────── */
+    #phases {
+      display: flex; align-items: center; gap: 0;
+      background: var(--dimmer);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+    }
+
+    .phase-box {
+      display: flex; flex-direction: column; align-items: center;
+      border: 1px solid currentColor;
+      padding: 6px 14px; min-width: 100px;
+      cursor: pointer; transition: all 0.2s; position: relative;
+    }
+    .phase-box:hover { background: rgba(255,255,255,0.04); }
+    .phase-box .ph-name { font-size: 12px; font-weight: bold; letter-spacing: 1px; }
+    .phase-box .ph-sub  { font-size: 10px; opacity: 0.6; margin-top: 2px; }
+    .phase-box .ph-dot  { position: absolute; top: 4px; right: 5px; font-size: 9px; }
+
+    .phase-q  { color: var(--amber);   border-color: var(--amber); }
+    .phase-r  { color: var(--green);   border-color: var(--green); }
+    .phase-s  { color: var(--cyan);    border-color: #0a4a4a; opacity: 0.5; }
+    .phase-p  { color: var(--magenta); border-color: #4a0a4a; opacity: 0.4; }
+    .phase-i  { color: #994444;        border-color: #331111; opacity: 0.35; }
+
+    .phase-active {
+      opacity: 1 !important;
+      box-shadow: 0 0 10px currentColor, inset 0 0 10px rgba(0,255,65,0.04);
+    }
+    .phase-done { opacity: 0.8 !important; }
+
+    .ph-arrow {
+      color: #2a5a2a; font-size: 18px; padding: 0 4px; flex-shrink: 0;
+    }
+    .ph-arrow.active-arrow { color: var(--amber); animation: pulse-arrow 1.5s ease-in-out infinite; }
+    @keyframes pulse-arrow { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+    /* Flowing data chars on arrows */
+    .flow-char {
+      display: inline-block;
+      animation: flow-anim var(--dur, 2s) linear infinite;
+      animation-delay: var(--delay, 0s);
+      color: var(--amber);
+    }
+    @keyframes flow-anim {
+      0%   { opacity: 0; transform: translateX(-8px); }
+      20%  { opacity: 1; }
+      80%  { opacity: 1; }
+      100% { opacity: 0; transform: translateX(8px); }
+    }
+
+    /* ── MAIN CONTENT ────────────────────────────────────────── */
+    #content {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 8px;
+      overflow: hidden;
+    }
+
+    .panel {
+      border: 1px solid var(--border);
+      background: var(--dimmer);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .panel-header {
+      padding: 5px 10px;
+      border-bottom: 1px solid var(--border);
+      font-size: 10px; letter-spacing: 1.5px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .panel-body { padding: 8px 10px; overflow-y: auto; flex: 1; font-size: 12px; line-height: 1.7; }
+
+    /* Participants panel */
+    .participant-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 3px 0; border-bottom: 1px solid #0d1f12;
+    }
+    .participant-row:last-child { border-bottom: none; }
+    .p-indicator { font-size: 11px; }
+    .p-lead { color: var(--cyan); }
+    .p-sim  { color: #4a8a4a; }
+    .p-name { font-size: 11px; }
+    .p-status { font-size: 10px; margin-left: auto; }
+    .p-done { color: var(--lime); }
+    .p-active { color: var(--amber); animation: blink 0.8s step-end infinite; }
+    .p-wait { color: #3a5a3a; }
+
+    .artifact-item {
+      padding: 3px 0;
+      font-size: 11px;
+      border-bottom: 1px dotted #1a3320;
+    }
+    .artifact-item:last-child { border-bottom: none; }
+    .art-file { color: var(--orange); }
+    .art-status { float: right; font-size: 10px; }
+    .art-done { color: var(--lime); }
+    .art-wait { color: #3a5a3a; }
+    .art-writing { color: var(--amber); animation: blink 0.6s step-end infinite; }
+
+    /* Commands panel */
+    .cmd-item {
+      display: flex; align-items: baseline; gap: 8px;
+      padding: 2px 0; font-size: 11px;
+      border-bottom: 1px dotted #0d1f12;
+    }
+    .cmd-item:last-child { border-bottom: none; }
+    .cmd-name { color: var(--lime); flex-shrink: 0; }
+    .cmd-desc { color: #3a6a3a; font-size: 10px; }
+
+    /* Gate panel */
+    .gate-section { margin-bottom: 12px; }
+    .gate-label { font-size: 10px; color: #3a6a3a; letter-spacing: 1px; margin-bottom: 4px; }
+    .gate-count {
+      font-size: 28px; font-weight: bold; color: var(--green);
+      text-shadow: 0 0 12px var(--green);
+    }
+    .gate-count span { font-size: 14px; color: #4a8a4a; }
+    .gate-pumpkin {
+      font-size: 24px; text-align: center;
+      padding: 8px;
+      border: 1px solid #1a3320;
+      margin: 8px 0;
+      color: #2a5a2a;
+      letter-spacing: 4px;
+    }
+    .gate-pumpkin.waiting { color: var(--amber); text-shadow: 0 0 12px var(--amber); animation: pumpkin-pulse 2s ease-in-out infinite; }
+    @keyframes pumpkin-pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.08);} }
+
+    .progress-bar {
+      height: 6px; background: #0d1f12;
+      border: 1px solid var(--border); border-radius: 1px;
+      overflow: hidden; margin: 6px 0;
+    }
+    .progress-fill {
+      height: 100%; background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      transition: width 1s ease;
+    }
+
+    /* ── EVENT LOG ───────────────────────────────────────────── */
+    #log {
+      border: 1px solid var(--border);
+      background: #020704;
+      padding: 6px 12px;
+      height: 110px;
+      overflow: hidden;
+      position: relative;
+    }
+    #log-title {
+      position: absolute; top: 6px; right: 12px;
+      font-size: 9px; color: #2a5a2a; letter-spacing: 1px;
+    }
+    #log-scroll { overflow: hidden; height: 100%; padding-top: 2px; }
+    .log-line {
+      display: flex; gap: 10px; font-size: 11px;
+      line-height: 1.5; opacity: 0; animation: fade-in 0.3s forwards;
+    }
+    @keyframes fade-in { to { opacity: 1; } }
+    .log-time { color: #2a5a2a; flex-shrink: 0; }
+    .log-event-q  { color: var(--amber); }
+    .log-event-r  { color: var(--green); }
+    .log-event-s  { color: var(--cyan); }
+    .log-event-ok { color: var(--lime); }
+    .log-event-gate { color: var(--red); }
+    .log-event-info { color: #4a8a4a; }
+    .log-event-cmd  { color: var(--lime); }
+
+    /* Typing cursor */
+    .cursor {
+      display: inline-block; width: 8px; height: 13px;
+      background: var(--green); vertical-align: text-bottom;
+      animation: cursor-blink 0.9s step-end infinite;
+      box-shadow: 0 0 6px var(--green);
+    }
+    @keyframes cursor-blink { 50% { opacity: 0; } }
+
+    /* Infra tags */
+    .infra-item { padding: 3px 0; font-size: 11px; border-bottom: 1px dotted #0d1f12; }
+    .infra-item:last-child { border-bottom: none; }
+    .infra-name { color: #4a8a8a; }
+    .infra-val  { float: right; color: #2a5a4a; font-size: 10px; }
+    .infra-alert { color: var(--red); float: right; font-size: 10px; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HEADER -->
+  <div id="header">
+    <div class="title glow2">
+      AGENT MOB&nbsp;·&nbsp;<span>QRSPI</span>&nbsp;·&nbsp;SMOKE TEST MONITOR
+    </div>
+    <div class="status-row">
+      <span>REPO&nbsp;mjohnson139/mob-test-workspace</span>
+      <span>BRANCH&nbsp;main&nbsp;<span style="color:#4a8a4a">✓protected</span></span>
+      <span>PARTICIPANTS&nbsp;3</span>
+      <span>PHASE&nbsp;<span style="color:var(--green)">R-ACTIVE</span></span>
+      <span class="live glow">◉ LIVE</span>
+    </div>
+  </div>
+
+  <!-- PHASE CHAIN -->
+  <div id="phases">
+    <div class="phase-box phase-q phase-done" onclick="selectPhase(&#39;q&#39;)">
+      <div class="ph-dot glow">✓</div>
+      <div class="ph-name glow">Q&nbsp;PHASE</div>
+      <div class="ph-sub">Questions</div>
+    </div>
+    <div class="ph-arrow active-arrow">&nbsp;═<span class="flow-char" style="--dur:1.8s;--delay:0s">▸</span>=▶&nbsp;</div>
+    <div class="phase-box phase-r phase-active glow" onclick="selectPhase(&#39;r&#39;)">
+      <div class="ph-dot" style="color:var(--amber);animation:blink 0.7s step-end infinite">●</div>
+      <div class="ph-name glow2">R&nbsp;PHASE</div>
+      <div class="ph-sub">Research</div>
+    </div>
+    <div class="ph-arrow">&nbsp;─<span class="flow-char" style="--dur:3s;--delay:0.5s;opacity:0.3">▸</span>─▶&nbsp;</div>
+    <div class="phase-box phase-s" onclick="selectPhase(&#39;s&#39;)">
+      <div class="ph-dot">○</div>
+      <div class="ph-name">S&nbsp;PHASE</div>
+      <div class="ph-sub">Synthesis</div>
+    </div>
+    <div class="ph-arrow">&nbsp;──▶&nbsp;</div>
+    <div class="phase-box phase-p" onclick="selectPhase(&#39;p&#39;)">
+      <div class="ph-dot">○</div>
+      <div class="ph-name">P&nbsp;PHASE</div>
+      <div class="ph-sub">Plan</div>
+    </div>
+    <div class="ph-arrow">&nbsp;──▶&nbsp;</div>
+    <div class="phase-box phase-i" onclick="selectPhase(&#39;i&#39;)">
+      <div class="ph-dot">○</div>
+      <div class="ph-name">I&nbsp;PHASE</div>
+      <div class="ph-sub">Implement</div>
+    </div>
+
+    <!-- Spacer then Q Questions detail -->
+    <div style="flex:1"></div>
+    <div style="border-left:1px solid var(--border);margin:0 12px"></div>
+    <div style="font-size:11px;color:var(--amber);line-height:1.7;padding:0 8px;max-width:240px">
+      <div style="color:#3a6a3a;font-size:9px;letter-spacing:1px;margin-bottom:4px">Q QUESTIONS ACTIVE</div>
+      <div>Q1&nbsp;&nbsp;Describe red <em style="color:#3a6a3a">visually</em></div>
+      <div>Q2&nbsp;&nbsp;Describe red <em style="color:#3a6a3a">emotionally</em></div>
+      <div>Q3&nbsp;&nbsp;Describe red <em style="color:#3a6a3a">conceptually</em></div>
+    </div>
+  </div>
+
+  <!-- MAIN PANELS -->
+  <div id="content">
+
+    <!-- PARTICIPANTS -->
+    <div class="panel">
+      <div class="panel-header">
+        <span style="color:var(--cyan)">◈ PARTICIPANTS</span>
+        <span style="color:#2a5a2a">3/3 ACTIVE</span>
+      </div>
+      <div class="panel-body">
+        <!-- mjohnson139 -->
+        <div style="margin-bottom:10px;padding:6px;border:1px solid #0d2a1a;background:#030a05">
+          <div class="participant-row">
+            <span class="p-indicator p-lead glow">◉</span>
+            <span class="p-name" style="color:var(--cyan)">mjohnson139</span>
+            <span class="p-status p-active">WRITING ▌</span>
+          </div>
+          <div style="font-size:10px;color:#2a5a4a;padding-left:18px;margin-top:3px">
+            ROLE: LEAD<br>
+            ENV: Codespace<br>
+            CMD: /mob fork → writing R artifact<br>
+            <div style="color:var(--amber);margin-top:4px" id="p-typing">Q1: analyzing spectral wavelengths...▌</div>
+          </div>
+        </div>
+        <!-- agent-alice -->
+        <div style="margin-bottom:6px;padding:5px 6px;border:1px solid #0d1f12;">
+          <div class="participant-row">
+            <span class="p-indicator p-sim">◈</span>
+            <span class="p-name" style="color:#4a9a4a">agent-alice</span>
+            <span class="p-status p-done">✓ DONE</span>
+          </div>
+          <div style="font-size:10px;color:#2a5a3a;padding-left:18px;margin-top:2px">
+            ROLE: SIMULATED · subagent<br>
+            OUT: R/@agent-alice.md
+          </div>
+        </div>
+        <!-- agent-bob -->
+        <div style="padding:5px 6px;border:1px solid #0d1f12;">
+          <div class="participant-row">
+            <span class="p-indicator p-sim">◈</span>
+            <span class="p-name" style="color:#4a9a4a">agent-bob</span>
+            <span class="p-status p-done">✓ DONE</span>
+          </div>
+          <div style="font-size:10px;color:#2a5a3a;padding-left:18px;margin-top:2px">
+            ROLE: SIMULATED · subagent<br>
+            OUT: R/@agent-bob.md
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- R ARTIFACTS -->
+    <div class="panel">
+      <div class="panel-header">
+        <span style="color:var(--orange)">◈ R ARTIFACTS</span>
+        <span id="art-count" style="color: var(--lime);">3/3</span>
+      </div>
+      <div class="panel-body">
+        <div style="margin-bottom:8px">
+          <div class="progress-bar"><div class="progress-fill" id="art-bar" style="width: 100%;"></div></div>
+          <div style="font-size:10px;color:#2a5a2a;text-align:right" id="art-pct">100% complete</div>
+        </div>
+
+        <div class="artifact-item">
+          <span class="art-status art-done">✓ committed</span>
+          <div class="art-file">R/@agent-alice.md</div>
+          <div style="font-size:10px;color:#2a5a2a">256 bytes · 3 answers</div>
+        </div>
+        <div class="artifact-item">
+          <span class="art-status art-done">✓ committed</span>
+          <div class="art-file">R/@agent-bob.md</div>
+          <div style="font-size:10px;color:#2a5a2a">312 bytes · 3 answers</div>
+        </div>
+        <div class="artifact-item" id="mjohnson-artifact">
+          <span class="art-status art-done" id="mjohnson-status">✓ committed</span>
+          <div class="art-file" style="color: var(--orange);">R/@mjohnson139.md</div>
+          <div style="font-size:10px;color:#2a5a2a" id="mjohnson-bytes">428 bytes</div>
+        </div>
+
+        <div style="margin-top:12px;font-size:10px;color:#2a5a2a;border-top:1px solid var(--border);padding-top:8px">
+          ┌ NEXT STEP ──────────────────┐<br>
+          │ awaiting mjohnson139        │<br>
+          │ then: /mob push → "pumpkin" │<br>
+          └─────────────────────────────┘
+        </div>
+      </div>
+    </div>
+
+    <!-- GATE / SIGNALS -->
+    <div class="panel">
+      <div class="panel-header">
+        <span style="color:var(--red)">◈ D-PHASE GATE</span>
+        <span style="color:#3a3a3a">LOCKED</span>
+      </div>
+      <div class="panel-body">
+        <div class="gate-section">
+          <div class="gate-label">ARTIFACTS PRESENT</div>
+          <div class="gate-count"><span id="gate-num">3</span><span> / 3</span></div>
+          <div class="progress-bar" style="height:8px"><div class="progress-fill" style="width: 100%; background: var(--green); box-shadow: 0 0 8px var(--green);" id="gate-bar"></div></div>
+        </div>
+
+        <div class="gate-section">
+          <div class="gate-label">PUMPKIN SIGNAL</div>
+          <div class="gate-pumpkin waiting" id="pumpkin-box" style="border-color: var(--amber);">
+            "pumpkin"
+          </div>
+          <div style="font-size:10px;color:#2a5a2a">
+            ← you say this when your R<br>
+            &nbsp;&nbsp;&nbsp;artifact is pushed
+          </div>
+        </div>
+
+        <div style="margin-top:10px;border:1px solid #0d1f12;padding:6px;font-size:11px">
+          <div style="color:#3a6a3a;font-size:9px;letter-spacing:1px;margin-bottom:4px">D-PHASE READY</div>
+          <div style="color:#2a4a2a">── PENDING ─────────────────</div>
+          <div style="color:#2a4a2a;font-size:10px;margin-top:4px">
+            mob-designer will synthesize<br>
+            after your green light →
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INFRASTRUCTURE + COMMANDS -->
+    <div class="panel">
+      <div class="panel-header">
+        <span style="color:#6a8a9a">◈ INFRA + COMMANDS</span>
+      </div>
+      <div class="panel-body">
+        <div style="color:#2a5a4a;font-size:9px;letter-spacing:1px;margin-bottom:4px">INFRASTRUCTURE</div>
+        <div class="infra-item">
+          <span class="infra-val" style="color:var(--lime)">public</span>
+          <span class="infra-name">github-repo</span>
+        </div>
+        <div class="infra-item">
+          <span class="infra-alert">locked</span>
+          <span class="infra-name">main branch</span>
+        </div>
+        <div class="infra-item">
+          <span class="infra-val" style="color:var(--lime)">installed</span>
+          <span class="infra-name">plugin</span>
+        </div>
+        <div class="infra-item">
+          <span class="infra-val" style="color:var(--lime)">running</span>
+          <span class="infra-name">codespace</span>
+        </div>
+        <div class="infra-item">
+          <span class="infra-val">pre-listed</span>
+          <span class="infra-name">PROJECT.yml</span>
+        </div>
+
+        <div style="color:#2a5a4a;font-size:9px;letter-spacing:1px;margin:10px 0 4px">COMMANDS</div>
+        <div class="cmd-item">
+          <span class="cmd-name">/mob init</span>
+          <span class="cmd-desc">workspace setup</span>
+        </div>
+        <div class="cmd-item">
+          <span class="cmd-name">/mob new-project</span>
+          <span class="cmd-desc">create + Q questions</span>
+        </div>
+        <div class="cmd-item">
+          <span class="cmd-name">/mob add-member</span>
+          <span class="cmd-desc">register participant</span>
+        </div>
+        <div class="cmd-item">
+          <span class="cmd-name glow" style="color:var(--lime)">/mob fork</span>
+          <span class="cmd-desc" style="color:#3a6a3a">← YOU RAN THIS</span>
+        </div>
+        <div class="cmd-item">
+          <span class="cmd-name" style="color:var(--amber)">/mob push</span>
+          <span class="cmd-desc" style="color:#4a4a2a">← run when done</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- EVENT LOG -->
+  <div id="log">
+    <div id="log-title">SYSTEM EVENT LOG</div>
+    <div id="log-scroll"><div class="log-line"><span class="log-time">[11:26:55]</span><span class="log-event-r">◉ mjohnson139: [typing] Conceptually: first in ROYGBIV, complementary to green...</span></div><div class="log-line"><span class="log-time">[11:26:58]</span><span class="log-event-info">R-phase progress: 2/3 artifacts committed · awaiting mjohnson139</span></div><div class="log-line"><span class="log-time">[11:27:01]</span><span class="log-event-r">◉ mjohnson139: [typing] Finalizing artifact structure...</span></div><div class="log-line"><span class="log-time">[11:27:05]</span><span class="log-event-r">◉ mjohnson139: [typing] Red is the wavelength of 620-750nm — long-wave visible...</span></div><div class="log-line"><span class="log-time">[11:27:08]</span><span class="log-event-r">◉ mjohnson139: [typing] Emotionally: urgency, danger, passion, warning...</span></div><div class="log-line"><span class="log-time">[11:27:11]</span><span class="log-event-r">◉ mjohnson139: [typing] Conceptually: first in ROYGBIV, complementary to green...</span></div><div class="log-line"><span class="log-time">[11:27:14]</span><span class="log-event-info">R-phase progress: 2/3 artifacts committed · awaiting mjohnson139</span></div></div>
+  </div>
+
+</div>
+
+<script>
+// ── EVENT LOG ──────────────────────────────────────────────────────────────────
+const LOG_EVENTS = [
+  { delay: 0,    cls: 'log-event-info', msg: 'mob workspace initialized · mjohnson139/mob-test-workspace' },
+  { delay: 800,  cls: 'log-event-cmd',  msg: '/mob new-project "QRSPI Smoke Test" · PROJECT.yml created' },
+  { delay: 1800, cls: 'log-event-q',    msg: 'Q questions generated · task: "describe color red from 3 angles"' },
+  { delay: 2800, cls: 'log-event-cmd',  msg: '/mob add-member agent-alice · onboarding notification queued' },
+  { delay: 3400, cls: 'log-event-cmd',  msg: '/mob add-member agent-bob · onboarding notification queued' },
+  { delay: 4200, cls: 'log-event-cmd',  msg: '/mob add-member mjohnson139 · pre-listed in PROJECT.yml' },
+  { delay: 5000, cls: 'log-event-info', msg: 'subagent spawned → agent-alice · starting R-phase fork' },
+  { delay: 5400, cls: 'log-event-info', msg: 'subagent spawned → agent-bob · starting R-phase fork' },
+  { delay: 7200, cls: 'log-event-r',    msg: '◉ agent-alice: writing R/@agent-alice.md · Q1 Q2 Q3 answered' },
+  { delay: 9100, cls: 'log-event-ok',   msg: '✓ R/@agent-alice.md committed and pushed to R/agent-alice branch' },
+  { delay: 9800, cls: 'log-event-r',    msg: '◉ agent-bob: writing R/@agent-bob.md · Q1 Q2 Q3 answered' },
+  { delay: 11600,cls: 'log-event-ok',   msg: '✓ R/@agent-bob.md committed and pushed to R/agent-bob branch' },
+  { delay: 12400,cls: 'log-event-info', msg: 'onboarding notification printed · awaiting mjohnson139 Codespace' },
+  { delay: 13200,cls: 'log-event-cmd',  msg: '[mjohnson139] /mob fork · R/mjohnson139 branch created' },
+  { delay: 14000,cls: 'log-event-r',    msg: '◉ mjohnson139: writing R/@mjohnson139.md ...' },
+];
+
+// Cyclic events after initial sequence
+const CYCLE_EVENTS = [
+  { cls: 'log-event-r',   msg: '◉ mjohnson139: [typing] Red is the wavelength of 620-750nm — long-wave visible...' },
+  { cls: 'log-event-r',   msg: '◉ mjohnson139: [typing] Emotionally: urgency, danger, passion, warning...' },
+  { cls: 'log-event-r',   msg: '◉ mjohnson139: [typing] Conceptually: first in ROYGBIV, complementary to green...' },
+  { cls: 'log-event-info',msg: 'R-phase progress: 2/3 artifacts committed · awaiting mjohnson139' },
+  { cls: 'log-event-r',   msg: '◉ mjohnson139: [typing] Finalizing artifact structure...' },
+];
+
+const logScroll = document.getElementById('log-scroll');
+const MAX_LOG_LINES = 7;
+let logLines = [];
+
+function addLogLine(cls, msg) {
+  const now = new Date();
+  const ts = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  const el = document.createElement('div');
+  el.className = 'log-line';
+  el.innerHTML = `<span class="log-time">[${ts}]</span><span class="${cls}">${msg}</span>`;
+  logLines.push(el);
+  if (logLines.length > MAX_LOG_LINES) {
+    logLines.shift().remove();
+  }
+  logScroll.appendChild(el);
+}
+
+// Schedule initial events
+LOG_EVENTS.forEach(({ delay, cls, msg }) => {
+  setTimeout(() => addLogLine(cls, msg), delay);
+});
+
+// Then cycle
+let cycleIdx = 0;
+setTimeout(() => {
+  setInterval(() => {
+    const ev = CYCLE_EVENTS[cycleIdx % CYCLE_EVENTS.length];
+    addLogLine(ev.cls, ev.msg);
+    cycleIdx++;
+  }, 3200);
+}, LOG_EVENTS[LOG_EVENTS.length - 1].delay + 2000);
+
+// ── ARTIFACT PROGRESS ANIMATION ────────────────────────────────────────────────
+let bytesWritten = 0;
+const targetBytes = 428;
+
+setTimeout(() => {
+  const interval = setInterval(() => {
+    bytesWritten = Math.min(bytesWritten + Math.floor(Math.random() * 18 + 5), targetBytes);
+    document.getElementById('mjohnson-bytes').textContent = bytesWritten + ' bytes';
+
+    const pct = Math.round((bytesWritten / targetBytes) * 100);
+    const artPct = Math.round(((2 + bytesWritten / targetBytes) / 3) * 100);
+    document.getElementById('art-bar').style.width = artPct + '%';
+    document.getElementById('art-pct').textContent = artPct + '% complete';
+
+    if (bytesWritten >= targetBytes) {
+      clearInterval(interval);
+      completeArtifact();
+    }
+  }, 280);
+}, 14500);
+
+function completeArtifact() {
+  document.getElementById('mjohnson-status').textContent = '✓ committed';
+  document.getElementById('mjohnson-status').className = 'art-status art-done';
+  document.getElementById('mjohnson-artifact').querySelector('.art-file').style.color = 'var(--orange)';
+  document.getElementById('art-count').textContent = '3/3';
+  document.getElementById('art-count').style.color = 'var(--lime)';
+  document.getElementById('art-bar').style.width = '100%';
+  document.getElementById('art-pct').textContent = '100% complete';
+
+  document.getElementById('gate-num').textContent = '3';
+  document.getElementById('gate-bar').style.width = '100%';
+  document.getElementById('gate-bar').style.background = 'var(--green)';
+  document.getElementById('gate-bar').style.boxShadow = '0 0 8px var(--green)';
+
+  addLogLine('log-event-ok', '✓ R/@mjohnson139.md committed and pushed · 428 bytes · 3 answers');
+
+  setTimeout(() => {
+    addLogLine('log-event-gate', '▶ /mob push complete · 3/3 artifacts present · awaiting "pumpkin" signal');
+    document.getElementById('pumpkin-box').classList.add('waiting');
+    document.getElementById('pumpkin-box').style.borderColor = 'var(--amber)';
+  }, 1200);
+}
+
+// ── TYPING SIMULATION ──────────────────────────────────────────────────────────
+const typingEl = document.getElementById('p-typing');
+const typingTexts = [
+  'Q1: analyzing spectral wavelengths...',
+  'Q2: exploring emotional associations...',
+  'Q3: mapping conceptual frameworks...',
+  'synthesizing answers...',
+];
+let tIdx = 0, tCharIdx = 0;
+
+function typeChar() {
+  const text = typingTexts[tIdx % typingTexts.length];
+  if (tCharIdx < text.length) {
+    typingEl.textContent = text.slice(0, ++tCharIdx) + '▌';
+    setTimeout(typeChar, 45 + Math.random() * 30);
+  } else {
+    setTimeout(() => {
+      tCharIdx = 0; tIdx++;
+      typingEl.textContent = '';
+      setTimeout(typeChar, 800);
+    }, 1200);
+  }
+}
+
+setTimeout(typeChar, 14200);
+
+// ── PHASE SELECTION ────────────────────────────────────────────────────────────
+function selectPhase(id) {
+  // Just visual feedback — pulse the selected phase
+  document.querySelectorAll('.phase-box').forEach(b => b.style.filter = '');
+  event.currentTarget.style.filter = 'brightness(1.5)';
+  setTimeout(() => { event.currentTarget.style.filter = ''; }, 600);
+}
+</script>
+
+
+</body></html>
