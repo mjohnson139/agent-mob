@@ -1,7 +1,7 @@
 ---
 title: "feat: Participant UX Overhaul + Specialist Model"
 date: 2026-05-26
-status: active
+status: delivered
 origin: docs/brainstorms/2026-05-25-004-ux-participant-flow-and-specialist-model.md
 ---
 
