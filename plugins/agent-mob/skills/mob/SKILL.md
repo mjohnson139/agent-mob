@@ -1,11 +1,11 @@
 ---
 name: mob
-description: Use when the user invokes /mob or any mob subcommand (new-project, new-task, status, fork, push, add-member), or asks about project phases, creating a mob project, checking task status, or collaborating via QRSPI workflow
+description: Use when the user invokes /mob or any mob subcommand (new-project, new-task, status, join, contribute, add-member), or asks about project phases, creating a mob project, checking task status, or collaborating via QRSPI workflow
 ---
 
 # Agent Mob — Inline Fast Path
 
-Execute all mob commands **inline** using direct Bash/Read/Write tool calls. Do NOT dispatch to mob-agent via the Agent tool (except as noted under `/mob fork`).
+Execute all mob commands **inline** using direct Bash/Read/Write tool calls. Do NOT dispatch to mob-agent via the Agent tool (except as noted under /mob join).
 
 ## Workspace verification
 
@@ -56,8 +56,8 @@ Commands:
   /mob new-project "Name"      Create a new project branch
   /mob new-task "description"  Create a task scaffold on the current branch
   /mob status                  Show current phase and who is pending
-  /mob fork                    Get your personal next-step instructions
-  /mob push                    Commit staged files and push to origin
+  /mob join                    Join a project and get your next-step instructions
+  /mob contribute              Commit staged files and push to origin
   /mob add-member {github-id}  Add a participant to the current project
 ```
 
@@ -89,16 +89,23 @@ Execute inline. Steps:
    ```
    Fall back to asking the user if the result is unclear or empty.
 
-5. **Write `PROJECT.yml`:**
+5. **Ask for specialist roles:** "What specialist roles does this project need? (e.g., 'iOS engineer, backend engineer') — press Enter to skip."
+   - If roles provided: derive role slugs (lowercase, hyphens, e.g., "iOS engineer" → `ios-engineer`).
+   - If skipped: roles = `[]`
+
+6. **Write `PROJECT.yml`:**
    ```yaml
    name: {Human-readable project name}
    lead: {github-id}
    task: ""
+   roles:
+     - {role-slug}   # one per line; omit if roles: []
    participants:
      {github-id}: shared
    ```
+   If no roles were provided, write `roles: []` on a single line.
 
-6. **Write `CLAUDE.md`** using the template at `templates/project-CLAUDE.md`, substituting:
+7. **Write `CLAUDE.md`** using the template at `templates/project-CLAUDE.md`, substituting:
    - `{{project_name}}` → project name
    - `{{branch}}` → `active/{slug}`
    - `{{lead}}` → lead GitHub ID
@@ -111,7 +118,7 @@ Execute inline. Steps:
    ```
    Then write the substituted result to `CLAUDE.md`.
 
-7. **Commit:**
+8. **Commit:**
    ```bash
    git add PROJECT.yml CLAUDE.md && git commit -m "[mob] new-project: active/{slug}"
    ```
@@ -148,7 +155,7 @@ Execute inline. Steps:
    git add tasks/{task-id}/ PROJECT.yml && git commit -m "[mob] new-task: {task-id}"
    ```
 
-**Output:** "Task '{task-id}' created. Write Q/questions.md next, then run /mob push."
+**Output:** "Task '{task-id}' created. Write Q/questions.md next, then run /mob contribute."
 
 ---
 
@@ -185,37 +192,174 @@ Execute inline. Steps:
 
 ---
 
-## `/mob fork`
+## `/mob join`
 
-Determine the user's next action inline, then dispatch to a specialist agent if needed.
+Join a project branch. Works from any branch — no need to know the branch name.
 
-**Inline determination steps:**
+**Discovery mode (`/mob join`, no args):**
 
-1. **Read `PROJECT.yml`** (current task, participants list).
+1. **Fetch remotes:**
+   ```bash
+   git fetch --all
+   ```
 
-2. **Get the calling user's GitHub ID:**
+2. **List active branches** (local and remote):
+   ```bash
+   git branch -a | grep "active/"
+   ```
+   For each match, read `PROJECT.yml` on that branch for the project name, and get the last commit date:
+   ```bash
+   git log -1 --format="%ci" {branch}
+   ```
+
+3. **Sort by most recent commit date** and display:
+   ```
+   Active projects:
+
+     1. Red Study          active/red-study          2026-05-26
+     2. iOS Auth Redesign  active/ios-auth-redesign   2026-05-24
+
+   Type a number to join, or /mob join {project-name} to go directly.
+   ```
+
+4. Wait for user selection (a number), then proceed to **Checkout** below.
+
+If no active projects exist, say: "No active projects found. Run /mob new-project \"Name\" to create one."
+
+**Direct mode (`/mob join {name}`):**
+
+1. **Derive slug** from name using the same slug rules as /mob new-project.
+2. **Verify** that `active/{slug}` exists (local or remote):
+   ```bash
+   git branch -a | grep "active/{slug}"
+   ```
+   If not found, stop: "No active project matching '{name}'. Run /mob join to see available projects."
+3. Proceed to **Checkout** below.
+
+**Checkout (both modes):**
+
+1. Check whether `active/{slug}` exists locally:
+   ```bash
+   git branch --list active/{slug}
+   ```
+   - If local branch exists: `git checkout active/{slug}`
+   - If local branch absent: `git checkout -b active/{slug} origin/active/{slug}`
+
+2. Pull latest:
+   ```bash
+   git pull origin active/{slug}
+   ```
+
+3. Proceed to first-time/returning detection and orientation below.
+
+**Orientation — first-time vs. returning detection:**
+
+1. **Get the calling user's GitHub ID:**
    ```bash
    git config user.name
    ```
    Ask the user if result is unclear.
 
-3. **Apply phase state machine** (same rules as status) to determine what this user should do next.
+2. **Detect prior participation:** check whether any artifact file exists for this user on the current branch:
+   ```bash
+   find tasks/ -name "@{id}.md" 2>/dev/null | head -1
+   ```
+   - If no match → **first-time participant**
+   - If any match → **returning participant**
 
-4. **Output exactly:**
-   - Step 1: `git pull` command (with remote and branch)
-   - Step 2: Which file to create (with exact path)
-   - Step 3: Which agent to invoke (`mob-researcher` or `mob-designer`)
-   - Step 4: What inputs that agent will need
+3. **Determine current phase** by applying the phase state machine (same rules as /mob status) to identify whether the project is in Q, R, D, S, or P phase.
 
-**If the user needs to do R-phase work:** dispatch to `mob-researcher` via the Agent tool, passing the task path and questions file location.
+**First-time output:**
+```
+Welcome to {project name}, @{github-id}.
 
-**If the user needs to do D-phase work:** dispatch to `mob-designer` via the Agent tool, passing all R artifacts as input.
+Phase: {phase letter} — {phase name}
+Task: {task description from Q/task.md}
 
-**If the user is in Q, S, or P phase:** no agent dispatch needed — output the steps above and let the user proceed.
+What's been done:
+  ✓ @alice   — research complete
+  ✓ @bob     — research complete
+  ○ @you     — not started
+
+Your questions ({role} — {n} assigned):
+  Q1: {question text}
+  Q3: {question text}
+
+How would you like to start?
+  1. Brief me — I'll summarize the task and orient you before you begin
+  2. Let's go — start writing your research artifact now
+
+Type 1 or 2.
+```
+
+Notes:
+- The participant completion list is derived from `tasks/{task-id}/{phase}/@*.md` files — show ✓ for present, ○ for absent.
+- "Your questions" uses the role-filtered view defined below.
+- If no questions file exists yet, omit the questions block.
+
+**Role-filtered question view (used in orientation):**
+
+Parse `Q/questions.md` using this format:
+- `Q{n} [{role-slug}]: {text}` — assigned to a specific role
+- `Q{n}: {text}` — open to all participants
+- Malformed tags (e.g., `[missing-bracket`) → treat as untagged
+
+Read `tasks/{task-id}/Q/claims.yml` if present. Format: `Q1: github-id`.
+
+Look up the calling participant's role from `PROJECT.yml.participants.{id}`.
+
+Build view:
+- **Primary list:** questions tagged for the participant's role + untagged questions — excluding any already claimed by someone else
+- **Secondary list (role fluidity):** questions tagged for other roles, unclaimed, shown after a separator
+
+Display format:
+```
+Your questions (ios-engineer — 2 assigned):
+  Q1: {question text}
+  Q3: {question text}
+
+Other available questions (outside your role):
+  Q2: {question text}  [backend-engineer]
+```
+
+If a question is already claimed by another participant: show it as taken and omit from both lists:
+```
+  Q1: {question text}  [claimed by @alice]
+```
+
+**Claiming a question:**
+
+When a participant starts working on a question (during the join flow or when dispatching to mob-researcher), append the claim to `Q/claims.yml`:
+```yaml
+Q1: {github-id}
+```
+If the file does not exist, create it. Then commit:
+```bash
+git add tasks/{task-id}/Q/claims.yml && git commit -m "[mob] artifact: Q/claims.yml claim Q{n} by {github-id}"
+```
+
+**User picks 1 (Brief me):** dispatch `mob-researcher` with a `briefing: true` flag so the researcher opens with a 2-3 sentence task summary before diving into questions.
+
+**User picks 2 (Let's go):** dispatch `mob-researcher` directly, skipping the briefing preamble.
+
+**Returning output:**
+```
+{project name}  •  Phase {letter}  •  active/{slug}
+
+Your open questions: {comma-separated unclaimed question IDs}
+Next: /mob contribute when your artifact is ready
+```
+
+If all the participant's questions are answered (artifact exists for this user), say:
+```
+{project name}  •  Phase {letter}  •  active/{slug}
+
+Your artifact is already submitted. Run /mob status to see overall progress.
+```
 
 ---
 
-## `/mob push`
+## `/mob contribute`
 
 Execute inline. Steps:
 
@@ -243,7 +387,7 @@ Execute inline. Steps:
    git push origin {current-branch}
    ```
 
-6. **Output:** "Pushed. Other participants can now `git pull`."
+6. **Output:** "Pushed. Other participants can now git pull."
 
 ---
 
@@ -261,11 +405,13 @@ Execute inline. Steps:
 
 3. **Read `PROJECT.yml`.** If `{id}` is already in `participants:`, stop: "'{id}' is already a participant on this project."
 
-4. **Ask for scope:** "What is {id}'s scope? (shared | ios | android | rails | web | all)" — default `shared` if the user doesn't specify.
+4. **Ask for role:** Read `PROJECT.yml` to check whether any roles are defined.
+   - If `roles:` is non-empty: "What is {id}'s role? ({list defined roles}, or 'shared')"
+   - If `roles: []` or key absent: default to `shared` without prompting.
 
 5. **Append to `PROJECT.yml` participants section:**
    ```yaml
-     {id}: {scope}
+     {id}: {role-slug}
    ```
 
 6. **Commit:**
@@ -273,7 +419,7 @@ Execute inline. Steps:
    git add PROJECT.yml && git commit -m "[mob] add-member: {id} added to {current-branch}"
    ```
 
-7. **Output:** "'{id}' added as a participant (scope: {scope}). Run /mob push to share with the team."
+7. **Output:** "'{id}' added as a participant (role: {role-slug}). Run /mob contribute to share with the team."
 
 ---
 
@@ -303,7 +449,7 @@ Initialize the current directory as a mob workspace. Steps:
    git add AGENTS.md && git commit -m "[mob] init: initialize mob workspace"
    ```
 
-5. **Output:** "Mob workspace initialized. Run `/mob new-project \"Name\"` to create your first project."
+5. **Output:** "Mob workspace initialized. Run /mob new-project \"Name\" to create your first project."
 
 ---
 

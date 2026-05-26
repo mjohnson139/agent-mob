@@ -15,13 +15,13 @@
 ## Quick Reference
 
 ### Current Phase
-Run `/mob-status` to see the current phase and what's pending.
+Run /mob-status to see the current phase and what's pending.
 
 ### Your Next Action
-Run `/mob-fork` to get personalized instructions for what to do next.
+Run /mob-join to get personalized instructions for what to do next.
 
 ### Push Your Work
-After creating your artifact, run `/mob-push` to commit and push.
+After creating your artifact, run /mob-contribute to commit and push.
 
 ---
 

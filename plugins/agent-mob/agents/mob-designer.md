@@ -126,11 +126,7 @@ for the current design but should be addressed in later tasks.}
 
 After writing `D/design.md`:
 
-1. Say: "design.md is ready. Review it, then commit and push with:"
-   ```
-   git add tasks/{task-id}/D/design.md
-   mob-agent /mob-push
-   ```
+1. Say: "design.md is ready. Review it, then run /mob contribute to commit and push it."
 2. Do not commit yourself — the lead reviews before pushing
 
 ---
