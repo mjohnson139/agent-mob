@@ -1,11 +1,11 @@
 ---
 name: mob
-description: Use when the user invokes /mob or any mob subcommand (new-project, new-task, status, fork, push, add-member), or asks about project phases, creating a mob project, checking task status, or collaborating via QRSPI workflow
+description: Use when the user invokes /mob or any mob subcommand (new-project, new-task, status, join, contribute, add-member), or asks about project phases, creating a mob project, checking task status, or collaborating via QRSPI workflow
 ---
 
 # Agent Mob — Inline Fast Path
 
-Execute all mob commands **inline** using direct Bash/Read/Write tool calls. Do NOT dispatch to mob-agent via the Agent tool (except as noted under `/mob fork`).
+Execute all mob commands **inline** using direct Bash/Read/Write tool calls. Do NOT dispatch to mob-agent via the Agent tool (except as noted under /mob join).
 
 ## Workspace verification
 
@@ -56,8 +56,8 @@ Commands:
   /mob new-project "Name"      Create a new project branch
   /mob new-task "description"  Create a task scaffold on the current branch
   /mob status                  Show current phase and who is pending
-  /mob fork                    Get your personal next-step instructions
-  /mob push                    Commit staged files and push to origin
+  /mob join                    Join a project and get your next-step instructions
+  /mob contribute              Commit staged files and push to origin
   /mob add-member {github-id}  Add a participant to the current project
 ```
 
@@ -148,7 +148,7 @@ Execute inline. Steps:
    git add tasks/{task-id}/ PROJECT.yml && git commit -m "[mob] new-task: {task-id}"
    ```
 
-**Output:** "Task '{task-id}' created. Write Q/questions.md next, then run /mob push."
+**Output:** "Task '{task-id}' created. Write Q/questions.md next, then run /mob contribute."
 
 ---
 
@@ -185,7 +185,7 @@ Execute inline. Steps:
 
 ---
 
-## `/mob fork`
+## `/mob join`
 
 Determine the user's next action inline, then dispatch to a specialist agent if needed.
 
@@ -215,7 +215,7 @@ Determine the user's next action inline, then dispatch to a specialist agent if 
 
 ---
 
-## `/mob push`
+## `/mob contribute`
 
 Execute inline. Steps:
 
@@ -243,7 +243,7 @@ Execute inline. Steps:
    git push origin {current-branch}
    ```
 
-6. **Output:** "Pushed. Other participants can now `git pull`."
+6. **Output:** "Pushed. Other participants can now git pull."
 
 ---
 
@@ -273,7 +273,7 @@ Execute inline. Steps:
    git add PROJECT.yml && git commit -m "[mob] add-member: {id} added to {current-branch}"
    ```
 
-7. **Output:** "'{id}' added as a participant (scope: {scope}). Run /mob push to share with the team."
+7. **Output:** "'{id}' added as a participant (scope: {scope}). Run /mob contribute to share with the team."
 
 ---
 
@@ -303,7 +303,7 @@ Initialize the current directory as a mob workspace. Steps:
    git add AGENTS.md && git commit -m "[mob] init: initialize mob workspace"
    ```
 
-5. **Output:** "Mob workspace initialized. Run `/mob new-project \"Name\"` to create your first project."
+5. **Output:** "Mob workspace initialized. Run /mob new-project \"Name\" to create your first project."
 
 ---
 

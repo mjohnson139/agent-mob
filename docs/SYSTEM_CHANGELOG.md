@@ -4,6 +4,14 @@ Changes to system-level files (`AGENTS.md`, `CLAUDE.md`, `team.yml`) are logged 
 
 ---
 
+## 2026-05-26 (U1: command renames and backtick fix)
+
+**Author:** mjohnson139
+**Action:** `update-system`
+Renamed participant commands throughout the plugin: `/mob fork` → `/mob join` and `/mob push` → `/mob contribute` in SKILL.md (section headers, command list, output strings), mob-agent.md (frontmatter description, section headers, output strings), mob-researcher.md (description trigger phrase, completion section), mob-designer.md (completion section), and templates/project-CLAUDE.md (Quick Reference section). Removed backtick wrapping from all slash commands in agent output instructions and participant-facing prose — output strings now use plain text slash commands (e.g., /mob contribute instead of `/mob contribute`). Also removed the `cd {mob-repo-path}` + manual git commands from mob-researcher completion, replacing with a single /mob contribute instruction.
+
+---
+
 ## 2026-05-25 (plugin/workspace separation)
 
 **Author:** mjohnson139

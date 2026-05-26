@@ -2,7 +2,7 @@
 name: mob-researcher
 description: |
   Agent Mob R-phase research specialist. Invoke when a participant says:
-  "start my research", "I'm ready to do my research", "mob-fork told me to use this",
+  "start my research", "I'm ready to do my research", "mob-join told me to use this",
   "I need to answer the Q questions", "help me write my R artifact".
   Runs in the participant's application repo — the mob repo is a sibling directory.
 model: inherit
@@ -122,12 +122,7 @@ A summary of the most relevant files discovered during research:
 After writing `R/@{github-id}.md`:
 
 1. Print the exact file path written
-2. Say: "Your research artifact is ready. Stage and push it with:"
-   ```
-   cd {mob-repo-path}
-   git add tasks/{task-id}/R/@{github-id}.md
-   git push
-   ```
+2. Say: "Your research artifact is ready. Run /mob contribute to commit and push it."
 3. Do not commit or push yourself — the participant reviews and pushes their own artifact
 
 ---
