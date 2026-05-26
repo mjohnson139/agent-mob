@@ -83,6 +83,8 @@ Use `update-system` for changes to plugin source files (agents, skills, template
 
 Every `update-system` commit must have a corresponding entry in `docs/SYSTEM_CHANGELOG.md`.
 
+Every `update-system` commit must also bump the patch version in `plugins/agent-mob/.claude-plugin/plugin.json`. The changelog entry and version bump are atomic — they ship in the same commit.
+
 ---
 
 ## What NOT to Do Here

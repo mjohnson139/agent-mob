@@ -4,6 +4,14 @@ Changes to system-level files (`AGENTS.md`, `CLAUDE.md`, `team.yml`) are logged 
 
 ---
 
+## 2026-05-26 (U7: guided research mode — option 3 in /mob join orientation)
+
+**Author:** mjohnson139
+**Action:** `update-system`
+Added "Guide me" as option 3 in the first-time participant orientation menu in SKILL.md. When selected, research runs inline in the main Claude session — no subagent dispatch. Menu text updated to include option 3 and prompt changed from "Type 1 or 2" to "Type 1, 2, or 3". Added "User picks 3 (Guide me)" handler: opens with a confirmed-claims greeting asking where to start, runs a conversational research loop with the same objective-findings-only rules as mob-researcher.md (no auto-advance, all forbidden phrasing applies), and writes the standard R/@{github-id}.md artifact at session end with answered questions only. Options 1 and 2 unchanged. Also bumped plugin version 0.1.0 → 0.1.1 and added version-bump-on-update-system rule to AGENTS.md Commit Conventions.
+
+---
+
 ## 2026-05-26 (U6: mob-researcher — role context injection and contribute references)
 
 **Author:** mjohnson139
