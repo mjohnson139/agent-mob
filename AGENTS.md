@@ -28,7 +28,8 @@ plugins/
       AGENTS.md             ← workspace rulebook (installed by /mob init)
       PROJECT.yml           ← project manifest schema
       project-CLAUDE.md     ← project branch CLAUDE.md template
-    plugin.json             ← plugin manifest
+    .claude-plugin/
+      plugin.json           ← plugin manifest
 docs/
   brainstorms/              ← design explorations and requirements docs
   plans/                    ← implementation plans
@@ -92,5 +93,5 @@ Every `update-system` commit must also bump the patch version in `plugins/agent-
 - Do not create `active/`, `paused/`, or `archived/` branches — this is not a mob workspace
 - Do not create `PROJECT.yml` or task artifacts on any branch
 - Do not run `/mob new-project` or `/mob new-task` in this repo
-- Do not modify `plugins/agent-mob/plugin.json` without updating the manifest version
+- Do not modify `plugins/agent-mob/.claude-plugin/plugin.json` without updating the manifest version
 - Do not add `.claude-plugin/plugin.json` back to workspace detection checks — that was a previous design that mixed plugin and workspace concerns
