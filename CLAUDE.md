@@ -63,7 +63,8 @@ plugins/agent-mob/
     AGENTS.md             ← workspace rulebook (installed by /mob init)
     PROJECT.yml           ← project manifest schema
     project-CLAUDE.md     ← project branch CLAUDE.md template
-  plugin.json             ← plugin manifest
+  .claude-plugin/
+    plugin.json           ← plugin manifest
 ```
 
 ---
