@@ -4,6 +4,14 @@ Changes to system-level files (`AGENTS.md`, `CLAUDE.md`, `team.yml`) are logged 
 
 ---
 
+## 2026-05-26 (U5: question tagging, role-filtered view, and claim state)
+
+**Author:** mjohnson139
+**Action:** `update-system`
+Defined the inline role-tag format for questions.md in both SKILL.md and templates/AGENTS.md. Format: `Q{n} [{role-slug}]: {text}` for role-assigned questions, `Q{n}: {text}` for open questions visible to all. Malformed tags fall back to untagged. Added Q/claims.yml spec to AGENTS.md: append-only YAML `Q{n}: github-id`, absent key means unclaimed. Added role-filtered question view logic to SKILL.md join orientation: primary list (participant's role + untagged, excluding claimed-by-others); secondary list (other-role questions, shown after separator with role label); claimed questions shown as taken. Added claim write logic: on question selection, append to Q/claims.yml and commit. Backward compatible — projects with no role-tagged questions show all questions to all participants.
+
+---
+
 ## 2026-05-26 (U4: specialist model — PROJECT.yml roles schema, new-project prompt, add-member role assignment)
 
 **Author:** mjohnson139

@@ -294,8 +294,49 @@ Type 1 or 2.
 
 Notes:
 - The participant completion list is derived from `tasks/{task-id}/{phase}/@*.md` files — show ✓ for present, ○ for absent.
-- "Your questions" shows questions assigned to the participant's role (see U5 role-filtered view). If no roles are defined, show all unclaimed questions.
+- "Your questions" uses the role-filtered view defined below.
 - If no questions file exists yet, omit the questions block.
+
+**Role-filtered question view (used in orientation):**
+
+Parse `Q/questions.md` using this format:
+- `Q{n} [{role-slug}]: {text}` — assigned to a specific role
+- `Q{n}: {text}` — open to all participants
+- Malformed tags (e.g., `[missing-bracket`) → treat as untagged
+
+Read `tasks/{task-id}/Q/claims.yml` if present. Format: `Q1: github-id`.
+
+Look up the calling participant's role from `PROJECT.yml.participants.{id}`.
+
+Build view:
+- **Primary list:** questions tagged for the participant's role + untagged questions — excluding any already claimed by someone else
+- **Secondary list (role fluidity):** questions tagged for other roles, unclaimed, shown after a separator
+
+Display format:
+```
+Your questions (ios-engineer — 2 assigned):
+  Q1: {question text}
+  Q3: {question text}
+
+Other available questions (outside your role):
+  Q2: {question text}  [backend-engineer]
+```
+
+If a question is already claimed by another participant: show it as taken and omit from both lists:
+```
+  Q1: {question text}  [claimed by @alice]
+```
+
+**Claiming a question:**
+
+When a participant starts working on a question (during the join flow or when dispatching to mob-researcher), append the claim to `Q/claims.yml`:
+```yaml
+Q1: {github-id}
+```
+If the file does not exist, create it. Then commit:
+```bash
+git add tasks/{task-id}/Q/claims.yml && git commit -m "[mob] artifact: Q/claims.yml claim Q{n} by {github-id}"
+```
 
 **User picks 1 (Brief me):** dispatch `mob-researcher` with a `briefing: true` flag so the researcher opens with a 2-3 sentence task summary before diving into questions.
 

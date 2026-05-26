@@ -99,6 +99,35 @@ participants:
 linear_issue: ENG-123   # optional
 ```
 
+### Question format (Q/questions.md)
+
+The lead writes questions using this format. Role tags are optional — untagged questions are open to all participants:
+
+```
+Q1 [ios-engineer]: How does the current token refresh flow work on iOS?
+Q2 [backend-engineer]: What are the current session expiry rules on the API?
+Q3: What are the user-facing symptoms of an expired session?
+```
+
+- `Q{n} [{role-slug}]: {text}` — question assigned to a specific role
+- `Q{n}: {text}` — open question, visible to all participants
+- Role slug must match one of the roles defined in `PROJECT.yml`
+- Malformed tags (e.g., `[missing-bracket`) are treated as untagged
+
+### Question claim state (Q/claims.yml)
+
+Participants claim questions before working on them. The claim file lives alongside questions.md:
+
+```yaml
+Q1: alice
+Q2: bob
+```
+
+- Absent key = unclaimed
+- Append-only — do not remove or overwrite existing entries
+- Created on first claim, appended on subsequent claims
+- If two participants claim the same question simultaneously, last-writer-wins (merge conflicts are resolved manually)
+
 ### Phase rules
 - **Q:** Lead only. `task.md` = original description. `questions.md` = targeted codebase questions.
 - **R:** One file per participant (`@{id}.md`). Objective findings with `file:line` refs. No design opinions. Participant must not read `Q/task.md` — only `Q/questions.md`.
