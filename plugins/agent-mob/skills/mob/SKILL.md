@@ -89,16 +89,23 @@ Execute inline. Steps:
    ```
    Fall back to asking the user if the result is unclear or empty.
 
-5. **Write `PROJECT.yml`:**
+5. **Ask for specialist roles:** "What specialist roles does this project need? (e.g., 'iOS engineer, backend engineer') — press Enter to skip."
+   - If roles provided: derive role slugs (lowercase, hyphens, e.g., "iOS engineer" → `ios-engineer`).
+   - If skipped: roles = `[]`
+
+6. **Write `PROJECT.yml`:**
    ```yaml
    name: {Human-readable project name}
    lead: {github-id}
    task: ""
+   roles:
+     - {role-slug}   # one per line; omit if roles: []
    participants:
      {github-id}: shared
    ```
+   If no roles were provided, write `roles: []` on a single line.
 
-6. **Write `CLAUDE.md`** using the template at `templates/project-CLAUDE.md`, substituting:
+7. **Write `CLAUDE.md`** using the template at `templates/project-CLAUDE.md`, substituting:
    - `{{project_name}}` → project name
    - `{{branch}}` → `active/{slug}`
    - `{{lead}}` → lead GitHub ID
@@ -111,7 +118,7 @@ Execute inline. Steps:
    ```
    Then write the substituted result to `CLAUDE.md`.
 
-7. **Commit:**
+8. **Commit:**
    ```bash
    git add PROJECT.yml CLAUDE.md && git commit -m "[mob] new-project: active/{slug}"
    ```
@@ -357,11 +364,13 @@ Execute inline. Steps:
 
 3. **Read `PROJECT.yml`.** If `{id}` is already in `participants:`, stop: "'{id}' is already a participant on this project."
 
-4. **Ask for scope:** "What is {id}'s scope? (shared | ios | android | rails | web | all)" — default `shared` if the user doesn't specify.
+4. **Ask for role:** Read `PROJECT.yml` to check whether any roles are defined.
+   - If `roles:` is non-empty: "What is {id}'s role? ({list defined roles}, or 'shared')"
+   - If `roles: []` or key absent: default to `shared` without prompting.
 
 5. **Append to `PROJECT.yml` participants section:**
    ```yaml
-     {id}: {scope}
+     {id}: {role-slug}
    ```
 
 6. **Commit:**
@@ -369,7 +378,7 @@ Execute inline. Steps:
    git add PROJECT.yml && git commit -m "[mob] add-member: {id} added to {current-branch}"
    ```
 
-7. **Output:** "'{id}' added as a participant (scope: {scope}). Run /mob contribute to share with the team."
+7. **Output:** "'{id}' added as a participant (role: {role-slug}). Run /mob contribute to share with the team."
 
 ---
 

@@ -6,12 +6,16 @@ name: ""            # Human-readable project name (e.g., "iOS Auth Redesign")
 lead: ""            # GitHub ID of the project lead
 task: ""            # Current active task-id in format YYYYMMDD-slug (e.g., 20260523-user-auth-flow)
 
+roles: []           # optional specialist roles for this project (e.g., [ios-engineer, backend-engineer])
+                    # Each entry is a role slug: lowercase, hyphens, no spaces
+                    # Leave empty [] if no specialist model is needed
+
 participants:
-  # Each entry: github-id: scope
-  # scope values: shared | ios | android | rails | web | all
+  # Each entry: github-id: role-slug (or "shared" if no specialist role)
+  # Role slug must match one of the defined roles above, or use "shared"
   # Example:
   # mjohnson139: shared
-  # alice-ios: ios
-  # bob-android: android
+  # alice-ios: ios-engineer
+  # bob-android: backend-engineer
 
 # linear_issue: ""  # optional — Linear issue ID, set by /mob-linear-link (e.g., ENG-123)

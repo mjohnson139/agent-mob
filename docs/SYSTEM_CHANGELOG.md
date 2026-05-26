@@ -4,6 +4,14 @@ Changes to system-level files (`AGENTS.md`, `CLAUDE.md`, `team.yml`) are logged 
 
 ---
 
+## 2026-05-26 (U4: specialist model — PROJECT.yml roles schema, new-project prompt, add-member role assignment)
+
+**Author:** mjohnson139
+**Action:** `update-system`
+Extended the specialist model across three files. templates/PROJECT.yml: added `roles: []` field with comments explaining role slugs and the participant role-slug mapping (replacing the old scope comment). templates/AGENTS.md: updated PROJECT.yml schema block to show `roles:` field. SKILL.md new-project: added step 5 to ask "What specialist roles does this project need?" — derives role slugs from free-form input, writes `roles:` block if provided or `roles: []` if skipped; PROJECT.yml template now includes roles field; step numbers renumbered. SKILL.md add-member: replaced "scope" prompt with role-aware prompt — if project has defined roles, asks which role; if no roles defined, defaults to `shared` without prompting; output says "role" not "scope". mob-agent.md: same new-project and add-member changes mirrored. The specialist model is fully opt-in — existing projects without a `roles:` key behave as `roles: []`.
+
+---
+
 ## 2026-05-26 (U3: first-time vs. returning detection and adaptive orientation)
 
 **Author:** mjohnson139

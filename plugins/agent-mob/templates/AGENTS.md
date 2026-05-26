@@ -90,9 +90,12 @@ Example: 20260523-user-auth-flow
 name: Human-readable project name
 lead: github-id
 task: 20260523-current-active-task
+roles:                  # optional specialist roles; [] if no specialist model
+  - ios-engineer
+  - backend-engineer
 participants:
-  github-id: shared     # scope: shared | ios | android | rails | all
-  github-id: ios
+  github-id: shared     # role slug matching one in roles:, or "shared"
+  github-id: ios-engineer
 linear_issue: ENG-123   # optional
 ```
 
