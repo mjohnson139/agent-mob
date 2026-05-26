@@ -6,15 +6,16 @@ A Claude Code plugin that brings **QRSPI-structured collaboration** to any git r
 
 ## What is QRSPI?
 
-QRSPI is a five-phase workflow for collaborative software work:
+QRSPI is a structured workflow for collaborative software work, adapted from Dexter Horthy's [seven-step pipeline](https://www.youtube.com/watch?v=YwZR6tc7qYg). Agent Mob distills it into five participant-facing phases with an internal lead-only Design step between R and S:
 
 | Phase | Name | What happens |
 |---|---|---|
-| **Q** | Question | The lead defines the problem and open questions |
-| **R** | Research | Participants independently investigate and write findings |
-| **S** | Synthesis | The lead synthesizes research into a design |
-| **P** | Plan | Implementation plan is written |
-| **I** | Implementation | Work gets built |
+| **Q** | Questions | The lead lists unknowns and gaps, writes open questions |
+| **R** | Research | Participants independently document what exists (no suggestions) |
+| *(D)* | *Design* | *Lead only — synthesizes research into a ~200-line design doc* |
+| **S** | Structure | Participants outline phases and validation steps |
+| **P** | Plan | The lead synthesizes into actionable, task-based instructions |
+| **I** | Implement | Work gets built in small, manageable chunks |
 
 Each phase produces a markdown artifact committed to a project branch. The file tree is the state machine.
 
