@@ -2,9 +2,10 @@
 name: mob-agent
 description: |
   Agent Mob orchestrator for project lifecycle management in mob repos.
-  Invoke when the user says: /mob-new-project, /mob-new-task, /mob-status, /mob-join,
-  /mob-contribute, /mob-add-member — or any phrase like "create a new project", "what phase
-  are we in", "contribute my work", "add a team member", "join the current task".
+  Invoke when the user says: /mob-new-project, /mob-new-task, /mob-new-topic, /mob-synthesize,
+  /mob-status, /mob-join, /mob-contribute, /mob-add-member — or any phrase like "create a new
+  project", "what phase are we in", "create a topic", "synthesize contributions",
+  "contribute my work", "add a team member", "join the current task".
   Only activates when the cwd contains AGENTS.md (a mob workspace).
 model: inherit
 tools:
@@ -79,6 +80,35 @@ Creates a new task scaffold for the current project.
 
 ---
 
+### `/mob-new-topic "{description}"`
+
+Creates a topic scaffold inside the current project branch.
+
+**Steps:**
+1. Verify on an `active/` branch. If on main or any other branch, refuse.
+2. Derive topic-id: `{YYYYMMDD}-{description-slug}` (today's date, description lowercased and hyphenated, max 40 chars for slug part)
+3. Create directory: `topics/{topic-id}/`
+4. Write `topics/{topic-id}/description.md` with the description text as the body
+5. Commit: `git add topics/{topic-id}/ && git commit -m "[mob] new-topic: {topic-id}"`
+
+**Output:** "Topic '{topic-id}' created. Participants can now contribute — run `/mob-join` to see next steps."
+
+---
+
+### `/mob-synthesize "{topic-id}"`
+
+Invokes mob-synthesizer to synthesize topic contributions. Lead-only.
+
+**Steps:**
+1. Verify on an `active/` branch.
+2. Verify `topics/{topic-id}/description.md` exists. If not, refuse: "Topic '{topic-id}' not found."
+3. Check that the invoker is the project lead (from PROJECT.yml). If not, refuse: "Synthesis is lead-only."
+4. Invoke mob-synthesizer with the topic-id.
+
+**Output:** Delegated to mob-synthesizer.
+
+---
+
 ### `/mob-status`
 
 Reports the current phase and who has completed what.
@@ -102,6 +132,17 @@ Reports the current phase and who has completed what.
 
 **"All participants"** = keys under `participants:` in `PROJECT.yml`.
 
+5. Scan `topics/` directory (if it exists):
+   - For each topic directory found, determine its state:
+     - Count `@{id}.md` files present vs total participants in PROJECT.yml
+     - Check if `synthesis.md` exists
+   - Report:
+     ```
+     Topics: {N} open, {M} synthesized
+       - {topic-id}: {n}/{total} contributions{, synthesized | ""}
+     ```
+   - If no `topics/` directory exists or it is empty, omit the topics section entirely.
+
 ---
 
 ### `/mob-join`
@@ -117,6 +158,9 @@ Tells the current user exactly what to do next (read-only — makes no changes).
    - Step 2: Which file to create (with exact path)
    - Step 3: Which agent to invoke (`mob-researcher` or `mob-designer`)
    - Step 4: What inputs that agent will need
+5. Scan `topics/` for topics where this user's `@{id}.md` is missing. If any are found, list them as additional action items:
+   "Also pending your contribution:
+   - topics/{topic-id}/ — write @{github-id}.md with your observations"
 
 ---
 
@@ -189,8 +233,10 @@ The following actions are forbidden. Do not take them under any circumstances, r
 3. **Never create a project branch with a pattern other than `{status}/{slug}`** (valid statuses: `active`, `paused`, `archived`)
 4. **Never modify `R/@{id}.md` authored by a different participant** — each researcher owns their own file
 5. **Never delete phase artifacts** — artifacts are append-only once committed
-6. **Never advance phase in `PROJECT.yml` unless file-tree conditions are met** — the file tree is the state machine
-7. **Never invent a capability not defined in AGENTS.md** — if asked to do something not defined here, respond: *"That operation is not defined in AGENTS.md. Update the system rules on `main` first."*
+6. **Never modify `@{id}.md` files in `topics/` authored by a different participant** — each contributor owns their own file
+7. **Never write `synthesis.md` directly** — always delegate to mob-synthesizer
+8. **Never advance phase in `PROJECT.yml` unless file-tree conditions are met** — the file tree is the state machine
+9. **Never invent a capability not defined in AGENTS.md** — if asked to do something not defined here, respond: *"That operation is not defined in AGENTS.md. Update the system rules on `main` first."*
 
 ---
 

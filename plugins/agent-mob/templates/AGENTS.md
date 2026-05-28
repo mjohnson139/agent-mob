@@ -60,6 +60,20 @@ Phase is derived from what files exist in a task directory. Apply these rules in
 
 "All participants" = the keys listed under `participants` in `PROJECT.yml`.
 
+## Topic State
+
+Topics have a simple, non-blocking state derived from `topics/{topic-id}/`:
+
+| Condition | State |
+|---|---|
+| `description.md` absent | Not initialized |
+| `description.md` present; no `@{id}.md` files | Open — awaiting contributions |
+| One or more `@{id}.md` present | In progress |
+| All participants' `@{id}.md` present | Contributions complete — synthesis optional |
+| `synthesis.md` present | Synthesized |
+
+Topics do **not** gate project advancement. A project can have active tasks and open topics simultaneously.
+
 ---
 
 ## Artifact Rules
@@ -69,20 +83,31 @@ Phase is derived from what files exist in a task directory. Apply these rules in
 active/{slug}/
 ├── PROJECT.yml
 ├── CLAUDE.md
-└── tasks/
-    └── {task-id}/
-        ├── Q/task.md
-        ├── Q/questions.md
-        ├── R/@{id}.md       ← one per participant
-        ├── D/design.md
-        ├── S/@{id}.md       ← one per participant
-        └── P/@{id}.md       ← one per participant
+├── tasks/
+│   └── {task-id}/
+│       ├── Q/task.md
+│       ├── Q/questions.md
+│       ├── R/@{id}.md       ← one per participant
+│       ├── D/design.md
+│       ├── S/@{id}.md       ← one per participant
+│       └── P/@{id}.md       ← one per participant
+└── topics/
+    └── {topic-id}/
+        ├── description.md   ← lead writes; defines the topic
+        ├── @{id}.md         ← one per contributing participant
+        └── synthesis.md     ← optional; lead-triggered
 ```
 
 ### Task ID format
 ```
 {YYYYMMDD}-{description-slug}
 Example: 20260523-user-auth-flow
+```
+
+### Topic ID format
+```
+{YYYYMMDD}-{description-slug}
+Example: 20260528-auth-session-learnings
 ```
 
 ### PROJECT.yml schema
@@ -135,6 +160,7 @@ Q2: bob
 - **S:** One file per participant. Vertical slices, function signatures, verification checkpoints.
 - **P:** One file per participant. Tactical steps with checkboxes.
 - **W/I/PR:** Executed in participant's application repo. PR URLs posted as comments on the Linear issue.
+- **Topics:** Lead creates `description.md`. Each participant writes `@{id}.md` with unstructured observations. Lead may optionally trigger mob-synthesizer to produce `synthesis.md`. Topics are non-blocking.
 
 ---
 
@@ -186,6 +212,8 @@ The agent must never:
 5. Delete phase artifacts — artifacts are append-only once committed
 6. Advance phase in `PROJECT.yml` unless file-tree conditions are met
 7. Invent a capability not defined in this document
+8. Modify `@{id}.md` files in `topics/` authored by a different participant — each contributor owns their own file
+9. Write `synthesis.md` directly without using mob-synthesizer
 
 If asked to do something undefined, respond: *"That operation is not defined in AGENTS.md. Update the system rules on `main` first."*
 

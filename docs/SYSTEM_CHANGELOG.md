@@ -4,6 +4,14 @@ Changes to system-level files (`AGENTS.md`, `CLAUDE.md`, `team.yml`) are logged 
 
 ---
 
+## 2026-05-28 (U9: topics track — lightweight collaborative document track)
+
+**Author:** mjohnson139
+**Action:** `update-system`
+Added a lightweight "topics" track alongside QRSPI for collaborative context-sharing that doesn't require the full design ceremony. New `/mob-new-topic` command scaffolds `topics/{topic-id}/description.md` on a project branch. Participants contribute `@{id}.md` files concurrently (same git-safe model as R phase). New `/mob-synthesize` command delegates to the new `mob-synthesizer` agent, which reads all contributions and produces an optional `synthesis.md`. `/mob-status` now reports topic progress alongside task phase status. `/mob-join` surfaces open topics with missing contributions as additional action items. `AGENTS.md` template updated with topics/ directory structure, topic state machine, topic ID format, and two new prohibitions (contributor file ownership, synthesis-via-agent-only). Bumped plugin version 0.1.2 → 0.1.3.
+
+---
+
 ## 2026-05-26 (U8: README and plugin.json path drift fix)
 
 **Author:** mjohnson139
