@@ -1,7 +1,7 @@
 # Requirements: Lightweight Topics Track
 
 **Date:** 2026-05-28
-**Status:** Ready for planning
+**Status:** Delivered — PR #15
 
 ---
 
