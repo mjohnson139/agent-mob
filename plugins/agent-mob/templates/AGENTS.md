@@ -91,11 +91,13 @@ active/{slug}/
 │       ├── D/design.md
 │       ├── S/@{id}.md       ← one per participant
 │       └── P/@{id}.md       ← one per participant
-└── topics/
-    └── {topic-id}/
-        ├── description.md   ← lead writes; defines the topic
-        ├── @{id}.md         ← one per contributing participant
-        └── synthesis.md     ← optional; lead-triggered
+├── topics/
+│   └── {topic-id}/
+│       ├── description.md   ← lead writes; defines the topic
+│       ├── @{id}.md         ← one per contributing participant
+│       └── synthesis.md     ← optional; lead-triggered
+└── archives/
+    └── {YYYYMMDD}-{slug}.recipe.md   ← one per captured session; any participant
 ```
 
 ### Task ID format
@@ -109,6 +111,14 @@ Example: 20260523-user-auth-flow
 {YYYYMMDD}-{description-slug}
 Example: 20260528-auth-session-learnings
 ```
+
+### Archive ID format
+```
+{YYYYMMDD}-{description-slug}.recipe.md
+Example: 20260528-ios-screen-viewmodel-service.recipe.md
+```
+
+Archives are session recipe artifacts produced by `/capture-session`. Any participant can add an archive at any time. Archives do not gate task or topic progression.
 
 ### PROJECT.yml schema
 ```yaml
@@ -214,6 +224,7 @@ The agent must never:
 7. Invent a capability not defined in this document
 8. Modify `@{id}.md` files in `topics/` authored by a different participant — each contributor owns their own file
 9. Write `synthesis.md` directly without using mob-synthesizer
+10. Modify an `archives/*.recipe.md` file after it has been committed — archives are append-only
 
 If asked to do something undefined, respond: *"That operation is not defined in AGENTS.md. Update the system rules on `main` first."*
 

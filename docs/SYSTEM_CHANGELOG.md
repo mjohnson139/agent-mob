@@ -4,6 +4,22 @@ Changes to system-level files (`AGENTS.md`, `CLAUDE.md`, `team.yml`) are logged 
 
 ---
 
+## 2026-05-28 (U11: capture-session output routing — mob workspace vs stdout)
+
+**Author:** mjohnson139
+**Action:** `update-system`
+Updated `capture-session` skill to route output based on workspace context. In a mob workspace (`AGENTS.md` present): writes artifact to `archives/{YYYYMMDD}-{slug}.recipe.md` and prompts `/mob contribute`. Outside a mob workspace: prints the full artifact to the chat (stdout) for the user to handle. The `archives/` directory is a new first-class artifact location on project branches — any participant can add archives at any time, archives do not gate task or topic progression, and archive files are append-only once committed. Updated `templates/AGENTS.md`: added `archives/` to the project branch structure diagram, added Archive ID format section, and added prohibition 10 (no modification of committed archives). Also added the "never write to `archives/` on `main`" guard to the skill. Updated `SYSTEM_CHANGELOG.md` entry for U10 to reflect final invocation design (no name argument). Bumped plugin version 0.1.4 → 0.1.5.
+
+---
+
+## 2026-05-28 (U10: session archiver — /capture-session skill)
+
+**Author:** mjohnson139
+**Action:** `update-system`
+Added a new `capture-session` skill at `plugins/agent-mob/skills/capture-session/SKILL.md`. Invoked as `/capture-session` (no arguments — agent derives everything from session content) or `/capture-session {path}` for historical JSONL sessions from `.claude/projects/`. Produces a portable markdown artifact with YAML frontmatter (title, date, tags, tools-used, stack, outcome, session-type) and six sections: Starting Prompt, Arc, Key Turns, Tools Used, Outcome, and Reuse Guidance. Output routing defined in U11. Bumped plugin version 0.1.3 → 0.1.4.
+
+---
+
 ## 2026-05-28 (U9: topics track — lightweight collaborative document track)
 
 **Author:** mjohnson139
