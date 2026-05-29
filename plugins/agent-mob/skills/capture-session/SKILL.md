@@ -7,7 +7,9 @@ description: Use when the user invokes /capture-session or says "capture this se
 
 Analyze a Claude Code session and produce a structured, portable recipe artifact in markdown. No mob workspace required — works in any directory.
 
-The artifact is storage-agnostic: write it to a file, paste it into Notion, push it to Google Drive, or hand it to any indexing system. The format is the contract.
+**Output routing:**
+- **In a mob workspace** (`AGENTS.md` present) → write to `archives/{date}-{slug}.recipe.md`, then prompt to `/mob contribute`
+- **Anywhere else** → print the artifact to the chat (stdout); the user decides where it goes
 
 ---
 
@@ -21,64 +23,44 @@ The artifact is storage-agnostic: write it to a file, paste it into Notion, push
 - **No args:** analyze the current session context.
 - **`{path}`:** read a historical session file from `.claude/projects/` instead.
 
-Do not prompt the user for a name. Derive everything from the session content.
+Do not prompt the user for a name or destination. Derive everything from the session content and the workspace context.
 
 ---
 
-## Mode 1 — Current Session (default)
+## Step 1 — Detect workspace context
 
-The session is already in context. Analyze the conversation without reading any files.
+```bash
+ls AGENTS.md 2>/dev/null
+```
 
-**Steps:**
-
-1. **Extract the session arc** from the conversation context:
-   - **Title:** derive a concise, descriptive name from the session content (e.g., "iOS Screen with ViewModel and Service"). Do not ask the user.
-   - **Starting prompt:** the first substantive user message that set the direction (verbatim or close paraphrase — do not editorialize)
-   - **Tools used:** enumerate the distinct tools invoked (Read, Edit, Bash, Write, Agent, etc.) and the rough pattern of use (e.g., "Read → Edit loop ×4, then Bash to verify")
-   - **Key turns:** the 3-7 decision points or pivots that shaped the session — include the user's direction AND what the agent did in response
-   - **Outcome:** what was produced and whether it succeeded
-   - **Tags:** infer 3-6 tags from the domain, stack, and task type
-   - **Stack:** list the technologies or frameworks that appeared
-
-2. **Write the artifact** (see format below).
-
-3. **Derive output filename** from the title: lowercase, hyphens, `.recipe.md` suffix. Example: `ios-screen-with-viewmodel-service.recipe.md`
-
-4. **Write to the current directory.**
-
-5. **Output:**
-   ```
-   Recipe saved: {filename}
-
-   To index it:
-     - Paste into Notion and add to your recipe database
-     - Run: open-brain capture < {filename}   (if using open-brain CLI)
-     - Or move it wherever your team stores reusable patterns
-   ```
+- **Found** → mob workspace mode (write to `archives/`)
+- **Not found** → stdout mode (print to chat)
 
 ---
 
-## Mode 2 — Historical Session (`--session {path}`)
+## Step 2 — Extract the session arc
 
-Read a session file from `.claude/projects/` and analyze it instead of the current context.
+**For current session (no path arg):** analyze the conversation context without reading any files.
 
-**Steps:**
+**For historical session (`{path}` provided):**
+1. Verify the path exists: `ls "{path}"`. If not found, stop: "Session file not found at '{path}'. Check `ls ~/.claude/projects/` to find available sessions."
+2. Read the session file (Claude Code stores sessions as JSONL — each line is a conversation turn).
+3. Extract the arc from the parsed turns.
 
-1. **Verify the path exists:**
-   ```bash
-   ls "{path}"
-   ```
-   If not found, stop: "Session file not found at '{path}'. Check `ls ~/.claude/projects/` to find available sessions."
-
-2. **Read the session file.** Claude Code stores sessions as JSONL — each line is a conversation turn. Read the file and parse the turn sequence.
-
-3. **Extract the same arc fields as Mode 1** from the parsed turns.
-
-4. Continue from Mode 1 step 3.
+**Fields to extract:**
+- **Title:** derive a concise, descriptive name from the session content. Do not ask the user.
+- **Starting prompt:** the first substantive user message that set the direction (verbatim or close paraphrase — do not editorialize)
+- **Tools used:** enumerate distinct tools invoked (Read, Edit, Bash, Write, Agent, etc.) and the rough pattern (e.g., "Read → Edit loop ×4, then Bash to verify")
+- **Key turns:** 3-7 decision points or pivots — include the user's direction AND the agent's response
+- **Outcome:** what was produced and whether it succeeded
+- **Tags:** infer 3-6 tags from the domain, stack, and task type
+- **Stack:** technologies or frameworks that appeared
 
 ---
 
-## Artifact Format
+## Step 3 — Write the artifact
+
+Use this format:
 
 ```markdown
 ---
@@ -135,9 +117,48 @@ Use imperative voice: "Start by reading X", "Avoid Y because Z", "Check for W be
 
 ---
 
+## Step 4 — Output
+
+**Derive filename** from title: lowercase, hyphens, `.recipe.md` suffix.
+Example: `ios-screen-with-viewmodel-service.recipe.md`
+
+---
+
+### Mob workspace mode
+
+1. Create `archives/` directory if it doesn't exist: `mkdir -p archives`
+2. Write artifact to `archives/{YYYYMMDD}-{slug}.recipe.md`
+3. Output:
+   ```
+   Recipe saved: archives/{filename}
+
+   Run /mob contribute to commit and share it with the team.
+
+   To index it in open-brain:
+     mcp__claude_ai_open-brain__capture_thought with the Arc and Reuse Guidance as the thought body
+   ```
+
+---
+
+### Stdout mode
+
+Print the full artifact markdown to the chat, then output:
+
+```
+--- recipe end ---
+
+To save and index this recipe:
+  - Copy into Notion and add to your recipe database
+  - Run: /mob contribute  (if you initialize a mob workspace here)
+  - Capture to open-brain with the Arc + Reuse Guidance as the thought body
+```
+
+---
+
 ## Prohibitions
 
 - **Never fabricate session content** — every field must trace to something that actually happened in the session or session file
 - **Never omit Reuse Guidance** — this section is the reason the artifact exists; if you can't write it, say so and explain why
-- **Never run in a mob workspace guard** — this skill works in any directory; do not check for AGENTS.md
-- **Never modify the session file** when using Mode 2 — read-only
+- **Never check for AGENTS.md as a guard that blocks execution** — its presence only determines output destination, not whether the skill runs
+- **Never modify the session file** when using the historical path — read-only
+- **Never write to `archives/` on `main`** — archives are project branch artifacts; if on `main`, treat as stdout mode
