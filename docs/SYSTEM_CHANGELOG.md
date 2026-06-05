@@ -4,6 +4,14 @@ Changes to system-level files (`AGENTS.md`, `CLAUDE.md`, `team.yml`) are logged 
 
 ---
 
+## 2026-06-03 (U12–U16: Role Apprenticeship System)
+
+**Author:** mjohnson139
+**Action:** `update-system`
+Added the Role Apprenticeship System across five files. Inverted the first-time participant join flow: the 1/2/3 menu is replaced by a status overview followed by a single open question ("What do you bring to this?"); the participant's self-introduction is then mapped to open questions and a specific routing proposal is returned — not a generic list (SKILL.md, mob-agent.md). Added `interview_mode: true` startup branch to `mob-researcher.md`: opens with a specific question tied to stated expertise, runs a structured dialogue loop (probing follow-ups, internal structured notes), drafts an artifact for participant review and approval before writing, and explicitly suspends objective-phrasing and file:line requirements (the human is the source). Added dual-capture at session end in `mob-researcher.md`: after writing `R/@{github-id}.md`, strongly prompts for a role expertise record (skippable with genuine reason); writes `roles/{role}/expertise/{YYYY-MM-DD}-{task-slug}-{github-id}.md` and overwrites `contributors/{github-id}/flavor.md` with a synthesized flavor summary. Added expertise extraction offer to `capture-session` SKILL.md in mob workspace mode: after writing the session recipe, offers to synthesize an expertise record from the session arc (softer prompt than mob-researcher; fully optional). Updated `templates/AGENTS.md`: added `roles/` and `contributors/` directories to the project branch structure diagram, defined expertise record format and YAML frontmatter schema, documented workspace-root promotion procedure (copy role directory from project branch to main), and added prohibition 11 (no overwriting committed expertise records). Bumped plugin version 0.1.5 → 0.1.6.
+
+---
+
 ## 2026-05-28 (U11: capture-session output routing — mob workspace vs stdout)
 
 **Author:** mjohnson139
