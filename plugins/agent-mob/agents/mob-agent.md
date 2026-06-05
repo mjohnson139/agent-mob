@@ -147,17 +147,52 @@ Reports the current phase and who has completed what.
 
 ### `/mob-join`
 
-Tells the current user exactly what to do next (read-only — makes no changes).
+Orients the calling participant and routes them to the right research path.
 
 **Steps:**
-1. Read `PROJECT.yml` (current task, participants)
-2. Determine the calling user's GitHub ID (from git config `user.email` or `user.name`, or ask)
-3. Apply phase state machine to determine what this user should do next
-4. Output exactly:
-   - Step 1: `git pull` command (with remote and branch)
-   - Step 2: Which file to create (with exact path)
-   - Step 3: Which agent to invoke (`mob-researcher` or `mob-designer`)
-   - Step 4: What inputs that agent will need
+1. Read `PROJECT.yml` (current task, participants, roles).
+2. Determine the calling user's GitHub ID (from git config `user.email` or `user.name`, or ask).
+3. Detect first-time vs. returning: check whether any artifact file (`find tasks/ -name "@{id}.md"`) exists for this user on the current branch.
+4. Apply phase state machine to determine the current phase.
+
+**First-time participant:**
+
+Output the status overview:
+```
+Welcome to {project name}, @{github-id}.
+
+Phase: {phase letter} — {phase name}
+Task: {task description from Q/task.md}
+
+What's been done:
+  ✓ @alice   — research complete
+  ○ @you     — not started
+
+Your questions ({role} — {n} assigned):
+  Q1: {question text}
+
+Before we figure out where you fit — what do you bring to this? In a sentence or two, what's your angle?
+```
+
+After the participant responds with their self-introduction:
+- Map stated expertise to open (unclaimed) questions in `Q/questions.md`
+- If a matching unclaimed question is found: output a specific routing proposal naming that question
+- If no match: propose a complementary angle grounded in their stated expertise
+- If all questions are claimed: offer a second-perspective contribution on the closest question
+- After participant confirms: write claim to `Q/claims.yml`, commit, then dispatch `mob-researcher` with `interview_mode: true` passing role, claimed_questions, and a brief of the stated expertise
+
+**Returning participant:**
+
+Output:
+```
+{project name}  •  Phase {letter}  •  active/{slug}
+
+Your open questions: {comma-separated unclaimed question IDs}
+Next: /mob contribute when your artifact is ready
+```
+
+If all their questions are answered (artifact exists): "Your artifact is already submitted. Run /mob status to see overall progress."
+
 5. Scan `topics/` for topics where this user's `@{id}.md` is missing. If any are found, list them as additional action items:
    "Also pending your contribution:
    - topics/{topic-id}/ — write @{github-id}.md with your observations"

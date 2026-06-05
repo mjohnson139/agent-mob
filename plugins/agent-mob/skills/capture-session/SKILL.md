@@ -137,6 +137,19 @@ Example: `ios-screen-with-viewmodel-service.recipe.md`
    To index it in open-brain:
      mcp__claude_ai_open-brain__capture_thought with the Arc and Reuse Guidance as the thought body
    ```
+4. **Offer expertise extraction:**
+   > "Would you like me to extract a role expertise record from this session? I'll analyze the session arc and surface domain knowledge, judgments, and edge cases to `roles/{role}/expertise/`. (Your GitHub ID and role are needed if not detectable from git config and PROJECT.yml.)"
+
+   - **If user says yes (or any affirmative):**
+     1. Read `PROJECT.yml` to determine the participant's role and task-id. If `PROJECT.yml` is absent or the participant's role is ambiguous, ask before writing.
+     2. Get GitHub ID from `git config user.name` — ask if unclear.
+     3. Derive `{task-slug}` from the task-id in PROJECT.yml (strip the date prefix).
+     4. Synthesize an expertise record from the session recipe (Arc, Key Turns, Outcome, and Reuse Guidance sections) — extract domain knowledge, key decisions, edge cases, and participant style signals.
+     5. Write to `roles/{role}/expertise/{YYYY-MM-DD}-{task-slug}-{github-id}.md` using the expertise record format defined in AGENTS.md.
+     6. Output: "Expertise record written: roles/{role}/expertise/{filename}. Run /mob contribute to commit it."
+   - **If user says no or does not respond affirmatively:** skip without prompting further. The session recipe is already saved.
+
+   This offer is softer than the prompt in `mob-researcher` — capture-session is a general utility, not an active interview session. Extraction is additive and optional.
 
 ---
 

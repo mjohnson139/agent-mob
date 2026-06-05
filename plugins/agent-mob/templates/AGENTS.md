@@ -96,6 +96,13 @@ active/{slug}/
 │       ├── description.md   ← lead writes; defines the topic
 │       ├── @{id}.md         ← one per contributing participant
 │       └── synthesis.md     ← optional; lead-triggered
+├── roles/
+│   └── {role-slug}/
+│       └── expertise/
+│           └── {YYYY-MM-DD}-{task-slug}-{github-id}.md   ← one per session; append-only
+├── contributors/
+│   └── {github-id}/
+│       └── flavor.md        ← synthesized flavor summary; overwritten after each session
 └── archives/
     └── {YYYYMMDD}-{slug}.recipe.md   ← one per captured session; any participant
 ```
@@ -119,6 +126,49 @@ Example: 20260528-ios-screen-viewmodel-service.recipe.md
 ```
 
 Archives are session recipe artifacts produced by `/capture-session`. Any participant can add an archive at any time. Archives do not gate task or topic progression.
+
+### Expertise record format
+
+Expertise records capture domain knowledge expressed during a contribution session. Written by `mob-researcher` at session end.
+
+```markdown
+---
+date: {YYYY-MM-DD}
+task: {task-id}
+contributor: {github-id}
+role: {role-slug}
+questions: [{Q1, Q3}]
+---
+
+# Expertise: @{github-id} — {role-slug}
+
+## Domain knowledge expressed
+
+{What the participant knows: mental models, heuristics, patterns they reach for}
+
+## Key decisions made
+
+{Judgments the participant articulated during the session, with their reasoning}
+
+## Edge cases surfaced
+
+{Boundary conditions, failure modes, or non-obvious constraints the participant named}
+
+## Personal flavor tags
+
+{3-6 short descriptors of the participant's style or perspective: e.g., "systems-first", "test-driven", "skeptical-of-abstraction"}
+```
+
+### Workspace-root promotion procedure
+
+Expertise records on a project branch are project-scoped by default. To share expertise across projects with the whole team:
+
+1. From the project branch, copy the relevant `roles/{role}/expertise/` directory (or individual files) to a temporary location.
+2. Check out `main`.
+3. Copy the files into `roles/{role}/expertise/` at the workspace root.
+4. Commit to `main` with action `update-system`.
+
+Teams can reference workspace-root expertise records when seeding future agents or onboarding new participants. Copy the full role directory to preserve the contributor sub-structure.
 
 ### PROJECT.yml schema
 ```yaml
@@ -225,6 +275,7 @@ The agent must never:
 8. Modify `@{id}.md` files in `topics/` authored by a different participant — each contributor owns their own file
 9. Write `synthesis.md` directly without using mob-synthesizer
 10. Modify an `archives/*.recipe.md` file after it has been committed — archives are append-only
+11. Overwrite or edit a committed expertise record in `roles/{role}/expertise/` — each session produces a new file; existing records are immutable
 
 If asked to do something undefined, respond: *"That operation is not defined in AGENTS.md. Update the system rules on `main` first."*
 
