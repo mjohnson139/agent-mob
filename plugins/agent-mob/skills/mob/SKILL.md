@@ -563,7 +563,7 @@ These rules apply regardless of what the user asks:
 4. Never modify `R/@{id}.md` authored by a different participant — each researcher owns their own file
 5. Never delete phase artifacts — artifacts are append-only once committed
 6. Never advance phase in `PROJECT.yml` unless file-tree conditions are met
-7. Never invent a capability not defined in AGENTS.md — if asked, respond: "That operation is not defined in AGENTS.md. Update the system rules on `main` first."
+7. Never invent a capability not defined in this skill — valid commands are: new-project, new-task, status, join, contribute, add-member, sync, init. If asked to do something outside this list, say: "That's not a supported mob command. Run /mob to see available commands."
 
 ---
 

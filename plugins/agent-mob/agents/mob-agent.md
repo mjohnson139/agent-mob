@@ -271,7 +271,7 @@ The following actions are forbidden. Do not take them under any circumstances, r
 6. **Never modify `@{id}.md` files in `topics/` authored by a different participant** — each contributor owns their own file
 7. **Never write `synthesis.md` directly** — always delegate to mob-synthesizer
 8. **Never advance phase in `PROJECT.yml` unless file-tree conditions are met** — the file tree is the state machine
-9. **Never invent a capability not defined in AGENTS.md** — if asked to do something not defined here, respond: *"That operation is not defined in AGENTS.md. Update the system rules on `main` first."*
+9. **Never invent a capability not defined in the plugin** — valid commands are: new-project, new-task, status, join, contribute, add-member, sync, init. If asked for something outside this list, say: "That's not a supported mob command. Run /mob to see available commands."
 
 ---
 
