@@ -1,6 +1,6 @@
 ---
 name: mob
-description: Use when the user invokes /mob or any mob subcommand (new-project, new-task, status, join, contribute, add-member), or asks about project phases, creating a mob project, checking task status, or collaborating via QRSPI workflow
+description: Use when the user invokes /mob or any mob subcommand (new-project, new-task, status, join, contribute, add-member, sync), or asks about project phases, creating a mob project, checking task status, syncing remote changes, or collaborating via QRSPI workflow
 ---
 
 # Agent Mob — Inline Fast Path
@@ -158,6 +158,68 @@ Execute inline. Steps:
    ```
 
 **Output:** "Task '{task-id}' created. Write Q/questions.md next, then run /mob contribute."
+
+---
+
+## `/mob sync`
+
+Fetch remote changes, merge them into the current branch, and produce a human-readable summary of what changed in the mob workspace.
+
+Execute inline. Steps:
+
+1. **Capture pre-merge state** — record the current HEAD so the diff is clean:
+   ```bash
+   git rev-parse HEAD
+   ```
+   Store as `{before_sha}`.
+
+2. **Fetch and merge:**
+   ```bash
+   git fetch origin
+   git merge origin/{current-branch} --no-edit
+   ```
+   If merge fails with conflicts, stop and report:
+   > "Merge conflict — resolve manually, then run /mob sync again to get the change summary."
+
+3. **Diff mob-tracked files** since `{before_sha}`:
+   ```bash
+   git diff {before_sha} HEAD -- tasks/ PROJECT.yml AGENTS.md
+   ```
+   If the diff is empty (already up to date), report: "Already up to date — no changes from remote." and stop.
+
+4. **Interpret the diff** into a human-readable update. Map file-level changes to plain-English events using this table:
+
+   | Changed file/pattern | Plain-English meaning |
+   |---|---|
+   | `Q/questions.md` — lines removed | Lead removed questions: list the question IDs and text |
+   | `Q/questions.md` — lines added | Lead added questions: list the new question IDs and text |
+   | `Q/claims.yml` — new entry | @{id} claimed Q{n} |
+   | `R/@{id}.md` — added | @{id} submitted their research artifact |
+   | `R/@{id}.md` — modified | @{id} updated their research artifact |
+   | `D/design.md` — added | Lead published the design document |
+   | `D/design.md` — modified | Lead updated the design document |
+   | `S/@{id}.md` — added | @{id} submitted their spec review |
+   | `P/@{id}.md` — added | @{id} submitted their implementation plan |
+   | `PROJECT.yml` participants — added | Lead added @{id} as {role} |
+   | `PROJECT.yml` participants — removed | Lead removed @{id} from the project |
+   | `PROJECT.yml` task — changed | Lead changed the active task |
+   | `AGENTS.md` — modified | Lead updated workspace rules |
+
+   Group related changes together. Write from the perspective of what other people did, not what git did.
+
+5. **Output** the summary in this format:
+   ```
+   Synced  •  {n} change(s) from remote
+
+   • Lead removed Android questions (Q7, Q8, Q9) from Q/questions.md
+   • @alice submitted her research artifact (R/@alice.md)
+   • Lead claimed Q2
+
+   You're now up to date on active/{slug}.
+   ```
+
+   If the calling user's own files changed (e.g. their artifact was modified remotely), call that out explicitly:
+   > "⚠ Your artifact (R/@{you}.md) was modified remotely — review before continuing."
 
 ---
 
