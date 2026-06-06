@@ -7,6 +7,8 @@ description: Use when the user invokes /mob or any mob subcommand (new-project, 
 
 Execute all mob commands **inline** using direct Bash/Read/Write tool calls. Do NOT dispatch to mob-agent via the Agent tool (except as noted under /mob join).
 
+**Output formatting:** When displaying slash commands to the user (e.g. /mob contribute, /mob status), write them as plain text — do NOT wrap them in backticks.
+
 ## Workspace verification
 
 Before taking any action (except `/mob init`), verify this is a mob workspace:
@@ -181,12 +183,36 @@ Execute inline. Steps:
    |---|---|
    | `Q/questions.md` absent | Phase Q in progress — questions.md not yet written |
    | `Q/questions.md` present; any participant's `R/@{id}.md` absent | Phase R in progress — list who is pending |
-   | All `R/@{id}.md` present for all participants | R complete — ready for Design phase |
+   | All `R/@{id}.md` present for all participants | R artifacts complete — run coverage audit (step 5a) |
    | `D/design.md` present but any `S/@{id}.md` missing | Phase S in progress |
    | All `S/@{id}.md` present; any `P/@{id}.md` missing | Phase P in progress |
    | All `P/@{id}.md` present | Complete — ready for implementation |
 
    "All participants" = keys under `participants:` in `PROJECT.yml`.
+
+5a. **R coverage audit** (run only when all `R/@{id}.md` files are present):
+
+   Parse all question IDs from `Q/questions.md` (lines matching `Q{n}:` or `Q{n} [{role}]:`).
+
+   For each question, check whether it appears in any `R/@*.md` artifact (search for `Q{n}` in each file). Classify each question as:
+   - **Answered** — referenced in at least one artifact
+   - **Unanswered** — not referenced in any artifact (and also not in `Q/claims.yml`, or claimed but no artifact written)
+
+   Report the audit result:
+   ```
+   Research coverage: {n}/{total} questions answered
+
+   Answered: Q1, Q3, Q4, Q6
+   Unanswered: Q2, Q5, Q7, Q8
+
+   ⚠ Some questions have no research coverage. As lead, you can:
+     1. Assign uncovered questions to participants before advancing
+     2. Accept the gaps and advance to Design (designer will note assumptions)
+
+   What would you like to do?
+   ```
+
+   Only mark R as "ready for Design" if the lead explicitly chooses to advance (option 2) or all questions are answered. Do NOT automatically suggest /mob-synthesize or writing the design doc until the lead confirms readiness.
 
 6. **Report** current phase, per-participant completion status, and recommended next action.
 
