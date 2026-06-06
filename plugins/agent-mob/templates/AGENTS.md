@@ -232,7 +232,7 @@ Every commit in this repository uses this format:
 [mob] {action}: {description}
 ```
 
-Valid action values: `init`, `new-project`, `new-task`, `artifact`, `advance`, `push`, `pause`, `archive`, `add-member`, `link-linear`, `update-system`
+Valid action values: `init`, `new-project`, `new-task`, `artifact`, `advance`, `push`, `pause`, `archive`, `add-member`, `link-linear`, `update-system`, `sync`
 
 Examples:
 ```
